@@ -1,3 +1,20 @@
 {
-  "type": "module"
+  "name": "@etchedjs/etched",
+  "version": "0.0.2",
+  "description": "**[PRERELEASE]** A utility to etch your JS objects in stone...\r ... and providing a helpful tracing tool.",
+  "main": "etched.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etchedjs/etched.git"
+  },
+  "author": "@etchedjs",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/etchedjs/etched/issues"
+  },
+  "homepage": "https://github.com/etchedjs/etched#readme"
 }
