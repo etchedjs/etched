@@ -1,11 +1,11 @@
 {
   "name": "@etchedjs/etched",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "description": "**[PRERELEASE]** A utility to etch your JS objects in stone...\r ... and providing a helpful tracing tool.",
   "main": "etched.js",
   "type": "module",
   "scripts": {
-    "version": "npm run build && git add . && git commit -m",
+    "version": "npm i && git add . && git commit -m",
     "postversion": "git push origin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

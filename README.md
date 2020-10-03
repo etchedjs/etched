@@ -1,7 +1,8 @@
 # @etchedjs/etched
 
-**[PRERELEASE]** A utility to etch your JS objects in stone...
-... and providing a helpful tracing tool.
+_Etches your JS objects in stone_
+
+**[PRERELEASE]** A utility to easily create some immutable objects by a chainable derivation that can be traced.
 
 
 ## Install
@@ -32,7 +33,7 @@ Object {
 ```
 
 
-## Examples
+## Examples with and without traces
 
 Considering the following **etched** module to build a URL:
 
