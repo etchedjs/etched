@@ -2,12 +2,18 @@
 
 _Etches your JS objects in stone_
 
-A utility to easily create some immutable objects by a chainable derivation.
+A utility to easily create some immutable objects by a chainable derivation, without any dependencies.
 
 
 ## Install
 
 `npm i @etchedjs/etched`
+
+Alternatively, in a browser, you can use it from the CDN:
+
+```js
+import etched from 'https://unpkg.com/@etched/etched@latest/etched.js'
+```
 
 
 ## Usage
