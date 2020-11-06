@@ -12,7 +12,7 @@ A utility to easily create some immutable objects by a chainable derivation, wit
 Alternatively, in a browser, you can use it from the CDN:
 
 ```js
-import etched from 'https://unpkg.com/@etched/etched@latest/etched.js'
+import etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.js'
 ```
 
 
