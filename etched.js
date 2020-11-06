@@ -1,39 +1,77 @@
-const { freeze } = Object
-const symbol = Symbol('@etched/etched.traces')
+const {
+  create,
+  entries,
+  freeze,
+  getOwnPropertyDescriptors,
+  hasOwnProperty
+} = Object
 
-/**
- * @module etched
- */
+const self = value => value
 
-const etched = {
-  /**
-   * @template {Object} properties
-   * @param {properties} [properties]
-   * @param {{url:string}} [url]
-   * @return {Readonly<default|properties|traces>}
-   */
-  with ({ ...properties } = {}, { url } = {}) {
-    const { [symbol]: traces, ...rest } = this
+function extend (target, props = {}) {
+  return freeze(create(target, getOwnPropertyDescriptors(props)))
+}
 
-    return freeze({
-      ...rest,
-      ...properties,
-      ...traces && url && {
-        [symbol]: freeze({
-          [Symbol(url)]: freeze(properties),
-          ...traces || {}
-        })
-      }
-    })
-  }
+function fill (instance, [key, value]) {
+  return (method(instance, key) || self)
+    .call(instance, value)
+}
+
+function method (instance, key) {
+  const [first, ...rest] = key
+  const name = `with${first.toUpperCase()}${rest.join('')}`
+  const { [name]: method } = instance
+
+  return !hasOwnProperty.call(instance, key) &&
+    typeof method === 'function' &&
+    method
+}
+
+function reduce (instance, [key, value]) {
+  return extend(instance, {
+    ...instance,
+    ...method(instance, key) && {
+      [key]: value
+    }
+  })
 }
 
 /**
- * @typedef {Readonly<Object.<symbol,Object>>} traces
- * @type {traces}
+ * @type {Readonly<Object>}
  */
-export const traces = etched.with({
-  [symbol]: freeze({})
-})
+export default freeze({
+  /**
+   * @template instance
+   * @template props
+   * @param {instance<Object>} instance
+   * @param {props<{}>} [props={}]
+   * @return {Readonly<instance&props>}
+   */
+  from (instance, props = {}) {
+    const pairs = entries(props)
 
-export default etched.with()
+    return pairs.length
+      ? pairs.reduce(fill, instance)
+      : extend(instance)
+  },
+  /**
+   * @template prototype
+   * @template mixin
+   * @param {instance<Object>|null} [prototype=null]
+   * @param {mixin<{}>} [mixin={}]
+   * @return {Readonly<instance&mixin>}
+   */
+  model (prototype = null, mixin = {}) {
+    return extend(extend(prototype, mixin))
+  },
+  /**
+   * @template instance
+   * @template props
+   * @param {instance<Object>} instance
+   * @param {props<{}>} [props={}]
+   * @return {Readonly<instance&props>}
+   */
+  with (instance, props = {}) {
+    return reduce(instance, ...entries(props))
+  }
+})

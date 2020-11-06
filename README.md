@@ -2,7 +2,7 @@
 
 _Etches your JS objects in stone_
 
-**[PRERELEASE]** A utility to easily create some immutable objects by a chainable derivation that can be traced.
+A utility to easily create some immutable objects by a chainable derivation.
 
 
 ## Install
@@ -12,172 +12,107 @@ _Etches your JS objects in stone_
 
 ## Usage
 
+### Create a model
 ```js
 import etched from '@etchedjs/etched'
 
-const user = etched
-  .with({
-    withName (name) {
-      return this.with({ name }, import.meta)
-    }
-  })
+const model = etched.model({
+  withLink (link) {
+    return etched.with(this, { link })
+  },
+  withName (name) {
+    return etched.with(this, { name })
+  }
+})
+```
 
-console.log(user.withName('bob'))
+### Create a model instance _with_ using the model methods
+```js
+const module = model
+  .withLink('https://www.npmjs.com/package/@etchedjs/etched')
+  .withName('@etched/etched')
+
+console.log(module)
 /*
-Object {
-  with(),
-  withName(name),
-  name: "Bob"
+{
+  link: "https://www.npmjs.com/package/@etchedjs/etched",
+  name: "@etched/etched"
+}
+*/
+```
+
+### Create a model instance _from_ etched
+```js
+const module = etched.from(model, {
+  link: 'https://www.npmjs.com/package/@etchedjs/etched',
+  name: '@etched/etched'
+})
+
+console.log(module)
+/*
+{
+  link: "https://www.npmjs.com/package/@etchedjs/etched",
+  name: "@etched/etched"
 }
 */
 ```
 
 
-## Examples with and without traces
+## API
 
-Considering the following **etched** module to build a URL:
+### etched.model
 
+Creates a new immutable **model**, based on optional prototype and/or mixin.
+
+It also acts as an instance.
 ```js
-import etched, { traces } from '@etchedjs/etched'
-
 /**
- * @type {module:etched}
- * @property {undefined|string} hash
- * @property {null|string} origin
- * @property {undefined|string} pathname
- * @property {undefined|module:etched/sdk/params} params
+ * @template prototype
+ * @template mixin
+ * @param {instance<Object>|null} [prototype=null]
+ * @param {mixin<{}>} [mixin={}]
+ * @return {Readonly<instance&mixin>}
  */
-const url = etched
-  .with({
-    origin: null,
-    /**
-     * @param {string} hash
-     * @return {this|{hash:string}}
-     */
-    withHash (hash) {
-      return this
-        .with({ hash }, import.meta)
-    },
-    /**
-     * @param {string} origin
-     * @return {this|{origin:string}}
-     */
-    withOrigin (origin) {
-      return this
-        .with({ origin }, import.meta)
-    },
-    /**
-     * @param {string} pathname
-     * @return {this|{pathname:string}}
-     */
-    withPathname (pathname) {
-      return this
-        .with({ pathname }, import.meta)
-    },
-    /**
-     * @param {module:etched/sdk/params} params
-     * @return {this|{params:module:etched/sdk/params}}
-     */
-    withParams (params) {
-      return this
-        .with({ params }, import.meta)
-    }
-  })
+const model = etched.model(prototype = null, mixin = {})
 ```
 
+### etched.with
 
-### Without traces
+Creates a new immutable instance, based on a previous one, **with** a unique property passed by the props object.
 ```js
-console.log(url
-  .withOrigin('http://example.org')
-  .withPathname('pathname')
-  .withPathname('pathname2')
-  .withHash('hash')
-  .withParams({
-    a: [1, 2],
-    b: 3
-  }))
-
-/*
-Object {
-  with(),
-  withHash(hash),
-  withOrigin(origin),
-  withPathname(pathname),
-  withParams(params),
-  origin: "http://example.org",
-  pathname: "pathname2",
-  hash: "hash",
-  params: { a: [1, 2], b: 3 }
-}
-*/
+/**
+ * @template target
+ * @template props
+ * @param {target<Object>} target
+ * @param {props<{}>} [props={}]
+ * @return {Readonly<target&props>}
+ */
+const instance = etched.with(target, props = {})
 ```
 
+### etched.from
 
-### With traces
+Like the `etched.with` method, it provides a new instance by calling **all** the methods related to the props properties.
+
 ```js
-console.log(url
-  .with(traces)
-  .withOrigin('http://example.org')
-  .withPathname('pathname')
-  .withPathname('pathname2')
-  .withHash('hash')
-  .withParams({
-    a: [1, 2],
-    b: 3
-  }))
-
-/*
-Object {
-  with(),
-  withHash(hash),
-  withOrigin(origin),
-  withPathname(pathname),
-  withParams(params),
-  origin: "http://example.org",
-  pathname: "pathname2",
-  hash: "hash",
-  params: { a: [1, 2], b: 3 },
-  Symbol(extensible.traces): {
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { params: { a: [1, 2], b: 3 } },
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { hash: "hash" },
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { pathname: "pathname2" },
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { pathname: "pathname" },
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { origin: "http://example.org" }
-  }
-}
-*/
+/**
+ * @template target
+ * @template props
+ * @param {target<Object>} target
+ * @param {props<{}>} [props={}]
+ * @return {Readonly<target&props>}
+ */
+const instance = etched.from(target, props = {})
 ```
 
+Example: for a props `{ value: 123 }`, it calls `instance.withValue(123)`
 
-### With traces before a specific point
-```js  
-console.log(url
-  .withOrigin('http://example.org')
-  .withPathname('pathname')
-  .withPathname('pathname2')
-  .with(traces)
-  .withHash('hash')
-  .withParams({
-    a: [1, 2],
-    b: 3
-  }))
+Just declare your model like this:
 
-/*
-Object {
-  with(),
-  withHash(hash),
-  withOrigin(origin),
-  withPathname(pathname),
-  withParams(params),
-  origin: "http://example.org",
-  pathname: "pathname2",
-  hash: "hash",
-  params: { a: [1, 2], b: 3 },
-  Symbol(extensible.traces): {
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { params: { a: [1, 2], b: 3 } },
-    Symbol(https://extensible.glitch.me/assets/js/url.js): Object { hash: "hash" }
+```js
+const model = etched.model(null, {
+  withValue (value) {
+    return etched.with(this, { value })
   }
-}
-*/
+})
 ```
