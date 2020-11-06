@@ -73,7 +73,7 @@ It also acts as an instance.
  * @param {mixin<{}>} [mixin={}]
  * @return {Readonly<instance&mixin>}
  */
-const model = etched.model(prototype = null, mixin = {})
+const model = etched.model(prototype, mixin)
 ```
 
 ### etched.with
@@ -87,7 +87,7 @@ Creates a new immutable instance, based on a previous one, **with** a unique pro
  * @param {props<{}>} [props={}]
  * @return {Readonly<target&props>}
  */
-const instance = etched.with(target, props = {})
+const instance = etched.with(target, props})
 ```
 
 ### etched.from
@@ -102,7 +102,7 @@ Like the `etched.with` method, it provides a new instance by calling **all** the
  * @param {props<{}>} [props={}]
  * @return {Readonly<target&props>}
  */
-const instance = etched.from(target, props = {})
+const instance = etched.from(target, props)
 ```
 
 Example: for a props `{ value: 123 }`, it calls `instance.withValue(123)`
