@@ -16,12 +16,21 @@ A utility to easily create some immutable objects by a chainable derivation.
 ```js
 import etched from '@etchedjs/etched'
 
-const model = etched.model({
+const model = etched.model(null, {
   withLink (link) {
     return etched.with(this, { link })
   },
   withName (name) {
     return etched.with(this, { name })
+  }
+})
+```
+
+### Extend a model
+```js
+const versioned = etched.model(model, {
+  withVersion (version) {
+    return etched.with(this, { version })
   }
 })
 ```
@@ -65,6 +74,8 @@ console.log(module)
 Creates a new immutable **model**, based on optional prototype and/or mixin.
 
 It also acts as an instance.
+
+Use it to declare your `with*` methods.
 ```js
 /**
  * @template prototype
@@ -87,7 +98,7 @@ Creates a new immutable instance, based on a previous one, **with** a unique pro
  * @param {props<{}>} [props={}]
  * @return {Readonly<target&props>}
  */
-const instance = etched.with(target, props})
+const instance = etched.with(target, props)
 ```
 
 ### etched.from
