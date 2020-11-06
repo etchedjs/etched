@@ -89,7 +89,7 @@ const model = etched.model(prototype, mixin)
 
 ### etched.with
 
-Creates a new immutable instance, based on a previous one, **with** a unique property passed by the props object.
+Creates a new immutable instance, based on a previous one, **with** any properties passed by the props object.
 ```js
 /**
  * @template target

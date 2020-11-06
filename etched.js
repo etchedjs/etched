@@ -8,13 +8,21 @@ const {
 
 const self = value => value
 
+function call (instance, [key, value]) {
+  return (method(instance, key) || self)
+    .call(instance, value)
+}
+
 function extend (target, props = {}) {
   return freeze(create(target, getOwnPropertyDescriptors(props)))
 }
 
-function fill (instance, [key, value]) {
-  return (method(instance, key) || self)
-    .call(instance, value)
+function fork (method, instance, props) {
+  const pairs = entries(props)
+
+  return pairs.length
+    ? pairs.reduce(method, instance)
+    : extend(instance)
 }
 
 function method (instance, key) {
@@ -27,7 +35,7 @@ function method (instance, key) {
     method
 }
 
-function reduce (instance, [key, value]) {
+function set (instance, [key, value]) {
   return extend(instance, {
     ...instance,
     ...method(instance, key) && {
@@ -48,11 +56,7 @@ export default freeze({
    * @return {Readonly<instance&props>}
    */
   from (instance, props = {}) {
-    const pairs = entries(props)
-
-    return pairs.length
-      ? pairs.reduce(fill, instance)
-      : extend(instance)
+    return fork(call, instance, props)
   },
   /**
    * @template prototype
@@ -72,6 +76,6 @@ export default freeze({
    * @return {Readonly<instance&props>}
    */
   with (instance, props = {}) {
-    return reduce(instance, ...entries(props))
+    return fork(set, instance, props)
   }
 })
