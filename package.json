@@ -1,6 +1,6 @@
 {
   "name": "@etchedjs/etched",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "A utility to easily create some immutable objects by a chainable derivation.",
   "main": "etched.js",
   "type": "module",
