@@ -22,7 +22,7 @@ function fork (method, instance, props) {
 
   return pairs.length
     ? pairs.reduce(method, instance)
-    : extend(instance)
+    : extend(instance, instance)
 }
 
 function method (instance, key) {
