@@ -9,14 +9,8 @@ const {
 const self = value => value
 
 function call (instance, [key, value]) {
-  const [first, ...rest] = key
-  const name = `with${first.toUpperCase()}${rest.join('')}`
-  const { [name]: method } = instance
-
-
-  return !hasOwnProperty.call(instance, key) && typeof method === 'function'
-    ? instance[name](value)
-    : extend(instance, instance)
+  return (method(instance, key) || self)
+    .call(instance, value)
 }
 
 function extend (target, props = {}) {
@@ -36,14 +30,17 @@ function method (instance, key) {
   const name = `with${first.toUpperCase()}${rest.join('')}`
   const { [name]: method } = instance
 
-  return !hasOwnProperty.call(instance, key) && typeof method === 'function' &&
+  return !hasOwnProperty.call(instance, key) &&
+    typeof method === 'function' &&
     method
 }
 
 function set (instance, [key, value]) {
   return extend(instance, {
     ...instance,
-    [key]: value
+    ...!method(instance, key) && {
+      [key]: value
+    }
   })
 }
 
