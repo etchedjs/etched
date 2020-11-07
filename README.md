@@ -72,6 +72,19 @@ console.log(module)
 */
 ```
 
+## Definition
+
+### The mutators
+
+A mutator is a camel cased method, prefixed with a `with` method and followed by the property name added to the returned instance copy.
+
+```js
+etched.model({
+  withVersion (version) {
+    return etched.with(this, { version })
+  }
+})
+```
 
 ## API
 
@@ -81,7 +94,7 @@ Creates a new immutable **model**, based on optional prototype and/or mixin.
 
 It also acts as an instance.
 
-Use it to declare your `with*` methods.
+Use it to declare your mutators, properties and methods.
 ```js
 /**
  * @template prototype
@@ -96,6 +109,8 @@ const model = etched.model(prototype, mixin)
 ### etched.with
 
 Creates a new immutable instance, based on a previous one, **with** any properties passed by the props object.
+
+**It ignores the properties that are already non-nullish _and_ inherited from the model.**
 ```js
 /**
  * @template target
@@ -109,8 +124,9 @@ const instance = etched.with(target, props)
 
 ### etched.from
 
-Like the `etched.with` method, it provides a new instance by calling **all** the methods related to the props properties.
+Like the `etched.with` method, it provides a new instance by calling **all** the mutators related to the props properties.
 
+**It ignores the properties that are already non-nullish _and_ inherited from the model.**
 ```js
 /**
  * @template target
@@ -122,14 +138,6 @@ Like the `etched.with` method, it provides a new instance by calling **all** the
 const instance = etched.from(target, props)
 ```
 
-Example: for a props `{ value: 123 }`, it calls `instance.withValue(123)`
+## Licence
 
-Just declare your model like this:
-
-```js
-const model = etched.model(null, {
-  withValue (value) {
-    return etched.with(this, { value })
-  }
-})
-```
+MIT

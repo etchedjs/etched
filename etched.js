@@ -6,11 +6,16 @@ const {
   hasOwnProperty
 } = Object
 
-const self = value => value
+const has = (instance, key) => hasOwnProperty.call(instance, key)
 
 function call (instance, [key, value]) {
-  return (method(instance, key) || self)
-    .call(instance, value)
+  const [first, ...rest] = key
+  const name = `with${first.toUpperCase()}${rest.join('')}`
+  const { [name]: method } = instance
+
+  return !has(instance, name) && typeof method === 'function'
+    ? instance[name](value)
+    : instance
 }
 
 function extend (target, props = {}) {
@@ -25,20 +30,12 @@ function fork (method, instance, props) {
     : extend(instance, instance)
 }
 
-function method (instance, key) {
-  const [first, ...rest] = key
-  const name = `with${first.toUpperCase()}${rest.join('')}`
-  const { [name]: method } = instance
-
-  return !hasOwnProperty.call(instance, key) &&
-    typeof method === 'function' &&
-    method
-}
-
 function set (instance, [key, value]) {
+  const { [key]: current = null } = instance
+
   return extend(instance, {
     ...instance,
-    ...!method(instance, key) && {
+    ...(current === null || has(instance, key)) && {
       [key]: value
     }
   })
