@@ -63,7 +63,7 @@ export default freeze({
    * @return {Readonly<instance&mixin>}
    */
   model (prototype = null, mixin = null) {
-    return extend(extend(prototype || {}, mixin || {}))
+    return extend(extend(prototype || {}, mixin || {}), {})
   },
   /**
    * @template instance
