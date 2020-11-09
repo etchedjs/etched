@@ -18,7 +18,7 @@ function call (instance, [key, value]) {
     : instance
 }
 
-function extend (target, props = {}) {
+function extend (target, props) {
   return freeze(create(target, getOwnPropertyDescriptors(props)))
 }
 
