@@ -100,7 +100,7 @@ Use it to declare your mutators, properties and methods.
  * @template prototype
  * @template mixin
  * @param {instance<Object>|null} [prototype=null]
- * @param {mixin<{}>} [mixin={}]
+ * @param {mixin<{}>} [mixin=null]
  * @return {Readonly<instance&mixin>}
  */
 const model = etched.model(prototype, mixin)
@@ -115,8 +115,8 @@ Creates a new immutable instance, based on a previous one, **with** any properti
 /**
  * @template target
  * @template props
- * @param {target<Object>} target
- * @param {props<{}>} [props={}]
+ * @param {target<Object>} [target=null]
+ * @param {props<{}>} [props=null]
  * @return {Readonly<target&props>}
  */
 const instance = etched.with(target, props)
@@ -132,7 +132,7 @@ Like the `etched.with` method, it provides a new instance by calling **all** the
  * @template target
  * @template props
  * @param {target<Object>} target
- * @param {props<{}>} [props={}]
+ * @param {props<{}>} [props=null]
  * @return {Readonly<target&props>}
  */
 const instance = etched.from(target, props)
