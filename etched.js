@@ -19,7 +19,7 @@ function call (instance, [key, value]) {
 }
 
 function extend (target, props) {
-  return freeze(create(target, getOwnPropertyDescriptors(props)))
+  return freeze(create(freeze(target), getOwnPropertyDescriptors(props)))
 }
 
 function fork (method, instance, props) {
