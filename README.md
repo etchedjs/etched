@@ -93,7 +93,7 @@ etched.etch(extended, {
 }) // ReferenceError: Must be a safe integer
 
 etched.etch(model, {
-  constant: 456
+  dynamic: 456
 }) // { constant: 123, dynamic: 456 }
 ```
 
