@@ -94,13 +94,7 @@ etched.etch(extended, {
 
 etched.etch(model, {
   constant: 456
-}) // ReferenceError: 'Unsafe etching'
-
-etched.etch(model, {
-  set dynamic () {
-  
-  }
-}) // ReferenceError: 'Unsafe etching'
+}) // { constant: 123, dynamic: 456 }
 ```
 
 ### Unsafe etching
