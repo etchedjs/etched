@@ -78,7 +78,7 @@ The model setters are cumulative by extension.
 ```js
 const extended = etched.model(model, {
   set dynamic (value) {
-    if (Number.isSafeInteger()) {
+    if (!Number.isSafeInteger(value)) {
       throw new ReferenceError('Must be a safe integer')
     }
   }
