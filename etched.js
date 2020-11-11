@@ -1,78 +1,105 @@
+/**
+ * @module etchedjs/etched
+ */
+
 const {
   create,
   entries,
   freeze,
+  fromEntries,
   getOwnPropertyDescriptors,
-  hasOwnProperty
+  getPrototypeOf,
+  isPrototypeOf
 } = Object
 
-const has = (instance, key) => hasOwnProperty.call(instance, key)
-
-function call (instance, [key, value]) {
-  const [first, ...rest] = key
-  const name = `with${first.toUpperCase()}${rest.join('')}`
-  const { [name]: method } = instance
-
-  return !has(instance, name) && typeof method === 'function'
-    ? instance[name](value)
-    : instance
-}
-
-function extend (target, props) {
-  return freeze(create(freeze(target), getOwnPropertyDescriptors(props)))
-}
-
-function fork (method, instance, props) {
-  const pairs = entries(props)
-
-  return pairs.length
-    ? pairs.reduce(method, instance)
-    : extend(instance, instance)
-}
-
-function set (instance, [key, value]) {
-  const { [key]: current = null } = instance
-
-  return extend(instance, {
-    ...instance,
-    ...(current === null || has(instance, key)) && {
-      [key]: value
-    }
-  })
-}
-
-/**
- * @type {Readonly<Object>}
- */
-export default freeze({
-  /**
-   * @template instance
-   * @template props
-   * @param {instance<Object>} instance
-   * @param {props<{}>} [props=null]
-   * @return {Readonly<instance&props>}
-   */
-  from (instance, props = null) {
-    return fork(call, instance, props || {})
+const etched = {
+  is (instance, model) {
+    return isPrototypeOf.call(prototype(model), instance)
   },
-  /**
-   * @template prototype
-   * @template mixin
-   * @param {instance<Object>|null} [prototype=null]
-   * @param {mixin<{}>} [mixin=null]
-   * @return {Readonly<instance&mixin>}
-   */
-  model (prototype = null, mixin = null) {
-    return extend(extend(prototype || {}, mixin || {}), {})
+  model (model = null, ...mixins) {
+    const descriptors = getOwnPropertyDescriptors(prototype(model) || {})
+
+    return etched.etch(frozen(frozen(model, {
+      ...descriptors,
+      ...mixins.reduce(declare, descriptors)
+    })))
   },
-  /**
-   * @template instance
-   * @template props
-   * @param {instance<Object>} [instance=null]
-   * @param {props<{}>} [props=null]
-   * @return {Readonly<instance&props>}
-   */
-  with (instance = null, props = null) {
-    return fork(set, instance || {}, props || {})
+  etch (instance, ...mixins) {
+    const model = prototype(instance)
+    const descriptors = getOwnPropertyDescriptors(model || {})
+
+    return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
   }
-})
+}
+
+function call (fn) {
+  fn(...this)
+}
+
+function setter (from, to) {
+  const setters = [to.set, from.set]
+
+  return {
+    set: value => setters.forEach(call, [value])
+  }
+}
+
+function value (from, to) {
+  const { set } = to
+  const { value } = from
+
+  set(value)
+
+  return {
+    enumerable: true,
+    value
+  }
+}
+
+function assign ([name, to]) {
+  const { [name]: from } = this
+
+  return [
+    name,
+    from && to.set && !from.set
+      ? value(from, to)
+      : to
+  ]
+}
+
+function fill (descriptors, mixin) {
+  return fromEntries(entries(descriptors)
+    .map(assign, getOwnPropertyDescriptors(mixin)))
+}
+
+function declare (descriptors, mixin) {
+  return fromEntries(entries(getOwnPropertyDescriptors(mixin))
+    .map(describe, descriptors))
+}
+
+function describe ([name, from]) {
+  const { [name]: to } = this
+
+  if (to && !to.set) {
+    throw new ReferenceError('Unsafe etching')
+  }
+
+  return [
+    name,
+    !to
+      ? from
+      : to.set && from.set
+      ? setter(from, to)
+      : value(from, to)
+  ]
+}
+
+function prototype (instance) {
+  return instance ? getPrototypeOf(instance) : instance
+}
+
+function frozen (instance, descriptors) {
+  return freeze(create(instance, descriptors))
+}
+
+export default etched

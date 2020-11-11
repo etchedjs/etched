@@ -15,127 +15,106 @@ Alternatively, in a browser, you can use it from the CDN:
 import etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.js'
 ```
 
+## Definition of a mixin
 
-## Usage
+A mixin is an object provided to create an extension of the current model/instance.
 
-### Create a model
-```js
-import etched from '@etchedjs/etched'
-
-const model = etched.model(null, {
-  withLink (link) {
-    return etched.with(this, { link })
-  },
-  withName (name) {
-    return etched.with(this, { name })
-  }
-})
-```
-
-### Extend a model
-```js
-const versioned = etched.model(model, {
-  withVersion (version) {
-    return etched.with(this, { version })
-  }
-})
-```
-
-### Create a model instance _with_ using the model methods
-```js
-const module = model
-  .withLink('https://www.npmjs.com/package/@etchedjs/etched')
-  .withName('@etched/etched')
-
-console.log(module)
-/*
-{
-  link: "https://www.npmjs.com/package/@etchedjs/etched",
-  name: "@etched/etched"
-}
-*/
-```
-
-### Create a model instance _from_ etched
-```js
-const module = etched.from(model, {
-  link: 'https://www.npmjs.com/package/@etchedjs/etched',
-  name: '@etched/etched'
-})
-
-console.log(module)
-/*
-{
-  link: "https://www.npmjs.com/package/@etchedjs/etched",
-  name: "@etched/etched"
-}
-*/
-```
-
-## Definition
-
-### The mutators
-
-A mutator is a camel cased method, prefixed with a `with` method and followed by the property name added to the returned instance copy.
-
-```js
-etched.model({
-  withVersion (version) {
-    return etched.with(this, { version })
-  }
-})
-```
 
 ## API
 
 ### etched.model
 
-Creates a new immutable **model**, based on optional prototype and/or mixin.
+`etched.model([instance|null], ...mixins)`
+
+Creates a new immutable **model**, based on optional model and/or mixin.
+
+It declares constants (direct value) and setters (to validate dynamic values)
 
 It also acts as an instance.
 
-Use it to declare your mutators, properties and methods.
+#### Example
 ```js
-/**
- * @template prototype
- * @template mixin
- * @param {instance<Object>|null} [prototype=null]
- * @param {mixin<{}>} [mixin=null]
- * @return {Readonly<instance&mixin>}
- */
-const model = etched.model(prototype, mixin)
+const model = etched.model(null, {
+  constant: 123,
+  set dynamic (value) {
+    if (isNaN(value)) {
+      throw new ReferenceError('Must be a number')
+    }
+  }
+}) // { constant: 123, dynamic: Setter }
 ```
 
-### etched.with
+### `etch.etch(instance, ...mixins)`
 
-Creates a new immutable instance, based on a previous one, **with** any properties passed by the props object.
 
-**It ignores the properties that are already non-nullish _and_ inherited from the model.**
+Creates a new immutable instance, based on a previous one and the optional mixins.
+
+**It only takes the values of corresponding properties to a model setter.**
+
+#### Example
+
 ```js
-/**
- * @template target
- * @template props
- * @param {target<Object>} [target=null]
- * @param {props<{}>} [props=null]
- * @return {Readonly<target&props>}
- */
-const instance = etched.with(target, props)
+const instance = etched.etch(model, {
+  dynamic: 456
+}) // { constant: 123, dynamic: 456 }
 ```
 
-### etched.from
+### `etched.is(instance, model)
 
-Like the `etched.with` method, it provides a new instance by calling **all** the mutators related to the props properties.
+Provides a way to check if an instance is an extension of the provided model.
 
-**It ignores the properties that are already non-nullish _and_ inherited from the model.**
+#### Example
 ```js
-/**
- * @template target
- * @template props
- * @param {target<Object>} target
- * @param {props<{}>} [props=null]
- * @return {Readonly<target&props>}
- */
-const instance = etched.from(target, props)
+etched.is(instance, model) // true
+etched.is(model, model) // true
+```
+
+## Additional notes
+
+### Cumulative setters
+
+The model setters are cumulative by extension.
+
+```js
+const extended = etched.model(model, {
+  set dynamic (value) {
+    if (Number.isSafeInteger()) {
+      throw new ReferenceError('Must be a safe integer')
+    }
+  }
+})
+
+etched.etch(model, {
+  dynamic: NaN
+}) // ReferenceError: Must be a number
+
+etched.etch(extended, {
+  dynamic: 0.1
+}) // ReferenceError: Must be a safe integer
+
+etched.etch(model, {
+  constant: 456
+}) // ReferenceError: 'Unsafe etching'
+
+etched.etch(model, {
+  set dynamic () {
+  
+  }
+}) // ReferenceError: 'Unsafe etching'
+```
+
+### Unsafe etching
+
+A model etching can't redeclare a constant.
+
+```js
+etched.model(model, {
+  constant: 456
+}) // ReferenceError: 'Unsafe etching'
+
+etched.model(model, {
+  set constant (value) {}
+}) // ReferenceError: 'Unsafe etching'
 ```
 
 ## Licence
