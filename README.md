@@ -56,6 +56,10 @@ const model = etched.model(null, {
     }
   }
 }) // { constant: 123, dynamic: Setter }
+
+const extended = etched.model(model, {
+  set value (value) {}
+}) // { constant: 123, dynamic: Setter, value: Setter }
 ```
 
 ### `etch.etch(instance, ...mixins)`
@@ -84,7 +88,7 @@ etched.etches(model, instance) // true
 etched.etches(model, model) // true
 ```
 
-### `etched.partial(constants, instance, ...mixins)
+### `etched.preserve(constants, instance, ...mixins)
 
 Provides a way to etch an existing instance, but preserving the provided constants.
 
@@ -92,9 +96,14 @@ Provides a way to etch an existing instance, but preserving the provided constan
 
 #### Example
 ```js
-etched.etches(etched.etched, instance) // true
-etched.etches(model, instance) // true
-etched.etches(model, model) // true
+const instance = etched.etch(extended, {
+  dynamic: 456,
+  value: 789
+}) // { constant: 123, dynamic: 456, value: 789 }
+
+etched.preserve(model, instance, {
+  value: 0
+}) // { constant: 123, dynamic: 456, value: 0 }
 ```
 
 ## Additional notes
@@ -104,7 +113,7 @@ etched.etches(model, model) // true
 The model setters are cumulative by extension.
 
 ```js
-const extended = etched.model(model, {
+const cumulative = etched.model(model, {
   set dynamic (value) {
     if (!Number.isSafeInteger(value)) {
       throw new ReferenceError('Must be a safe integer')
@@ -116,11 +125,11 @@ etched.etch(model, {
   dynamic: NaN
 }) // ReferenceError: Must be a number
 
-etched.etch(extended, {
+etched.etch(cumulative, {
   dynamic: 0.1
 }) // ReferenceError: Must be a safe integer
 
-etched.etch(model, {
+etched.etch(cumulative, {
   dynamic: 456
 }) // { constant: 123, dynamic: 456 }
 ```

@@ -82,21 +82,24 @@ export function etch (instance, ...mixins) {
 
 /**
  * @template {Etched} Constants
- * @template {{}<string|Symbol|set,*>} Mixin
+ * @template {Etched,{}<string|Symbol|set,*>} Mixin
+ * @template {Etched,{}<string|Symbol|set,*>} Instance
  * @param {Constants} constants
- * @param {Etched} instance
+ * @param {Instance} instance
  * @param {...Mixin} mixins
- * @return {Constants.prototype&Constants&Etched#prototype,Etched,Mixin}
+ * @return {Constants.prototype,Constants,Instance,Mixin}
  * @throws {ReferenceError}
  */
-export function partial (constants, instance, ...mixins) {
+export function preserve (constants, instance, ...mixins) {
   const proto = prototype(instance)
 
   if (!is(proto, instance)) {
     throw ReferenceError('`constants` must etch the `instance`')
   }
 
-  return etch(model(proto, etch(constants, instance)), instance, ...mixins)
+  const preserved = model(frozen(proto), etch(constants, instance))
+
+  return etch(preserved, ...mixins, instance)
 }
 
 function call (fn) {
