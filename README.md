@@ -84,6 +84,19 @@ etched.etches(model, instance) // true
 etched.etches(model, model) // true
 ```
 
+### `etched.partial(constants, instance, ...mixins)
+
+Provides a way to etch an existing instance, but preserving the provided constants.
+
+**Constants must etch the instance**
+
+#### Example
+```js
+etched.etches(etched.etched, instance) // true
+etched.etches(model, instance) // true
+etched.etches(model, model) // true
+```
+
 ## Additional notes
 
 ### Cumulative setters

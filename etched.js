@@ -42,14 +42,14 @@ export function etches (model, instance) {
  * @param {Prototype} instance
  * @param {...Mixin} mixins
  * @return {Etched#prototype,Etched,Prototype,Mixin}
- * @throws
+ * @throws {ReferenceError}
  */
 export function model (instance = null, ...mixins) {
   const target = instance === null ? etched : instance
   const model = prototype(target)
 
   if (!etches(etched, target)) {
-    throw new ReferenceError('Instance must be etched or null')
+    throw new ReferenceError('`instance` must be etched or `null`')
   }
 
   const descriptors = getOwnPropertyDescriptors(model)
@@ -66,18 +66,37 @@ export function model (instance = null, ...mixins) {
  * @param {Prototype} instance
  * @param {...Mixin} mixins
  * @return {Prototype#prototype,Prototype,Mixin}
- * @throws
+ * @throws {ReferenceError}
  */
 export function etch (instance, ...mixins) {
   const model = prototype(instance)
 
   if (!is(etched, model)) {
-    throw new ReferenceError('Instance must be etched')
+    throw new ReferenceError('`instance` must be etched')
   }
 
   const descriptors = getOwnPropertyDescriptors(model || {})
 
   return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
+}
+
+/**
+ * @template {Etched} Constants
+ * @template {{}<string|Symbol|set,*>} Mixin
+ * @param {Constants} constants
+ * @param {Etched} instance
+ * @param {...Mixin} mixins
+ * @return {Constants.prototype&Constants&Etched#prototype,Etched,Mixin}
+ * @throws {ReferenceError}
+ */
+export function partial (constants, instance, ...mixins) {
+  const proto = prototype(instance)
+
+  if (!is(proto, instance)) {
+    throw ReferenceError('`constants` must etch the `instance`')
+  }
+
+  return etch(model(proto, etch(constants, instance)), instance, ...mixins)
 }
 
 function call (fn) {
