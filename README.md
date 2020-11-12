@@ -12,21 +12,35 @@ A utility to easily create some immutable objects by a chainable derivation, wit
 Alternatively, in a browser, you can use it from the CDN:
 
 ```js
-import etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.js'
+import * as etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.js'
 ```
 
-## Definition of a mixin
+## Definitions
 
-A mixin is an object provided to create an extension of the current model/instance.
+### Instance
+
+A frozen object, based on a model object, by default: `etched.etched`
+
+### Mixin
+
+A mixin is an object provided to create an extension of the current instance.
 
 
 ## API
+
+### etched.etched
+
+The default instance
+
+```js
+etched.etched // {}
+```
 
 ### etched.model
 
 `etched.model([instance|null], ...mixins)`
 
-Creates a new immutable **model**, based on optional model and/or mixin.
+Creates a new immutable **model**, based on optional etched instance and/or mixin.
 
 It declares constants (direct value) and setters (to validate dynamic values)
 
@@ -59,14 +73,15 @@ const instance = etched.etch(model, {
 }) // { constant: 123, dynamic: 456 }
 ```
 
-### `etched.is(instance, model)
+### `etched.etches(model, instance)
 
 Provides a way to check if an instance is an extension of the provided model.
 
 #### Example
 ```js
-etched.is(instance, model) // true
-etched.is(model, model) // true
+etched.etches(etched.etched, instance) // true
+etched.etches(model, instance) // true
+etched.etches(model, model) // true
 ```
 
 ## Additional notes

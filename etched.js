@@ -2,6 +2,15 @@
  * @module etchedjs/etched
  */
 
+/**
+ * @typedef {{}} Model
+ */
+
+/**
+ * @typedef {Readonly,{}<string|symbol|set,*>} Etched
+ * @augments Model
+ */
+
 const {
   create,
   entries,
@@ -12,28 +21,71 @@ const {
   isPrototypeOf
 } = Object
 
-const etched = {
-  is (instance, model) {
-    return isPrototypeOf.call(prototype(model), instance)
-  },
-  model (model = null, ...mixins) {
-    const descriptors = getOwnPropertyDescriptors(prototype(model) || {})
+/**
+ * @type {Etched}
+ */
+export const etched = frozen(frozen(null))
 
-    return etched.etch(frozen(frozen(model, {
-      ...descriptors,
-      ...mixins.reduce(declare, descriptors)
-    })))
-  },
-  etch (instance, ...mixins) {
-    const model = prototype(instance)
-    const descriptors = getOwnPropertyDescriptors(model || {})
+/**
+ *
+ * @param {Etched} instance
+ * @param {Model} model
+ * @return {Boolean}
+ */
+export function etches (model, instance) {
+  return is(prototype(model), instance)
+}
 
-    return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
+/**
+ * @template {Etched|null} Prototype
+ * @template {{}<string|Symbol|set,*>} Mixin
+ * @param {Prototype} instance
+ * @param {...Mixin} mixins
+ * @return {Etched#prototype,Etched,Prototype,Mixin}
+ * @throws
+ */
+export function model (instance = null, ...mixins) {
+  const target = instance === null ? etched : instance
+  const model = prototype(target)
+
+  if (!is(model, etched)) {
+    throw new ReferenceError('Instance must be etched or null')
   }
+
+  const descriptors = getOwnPropertyDescriptors(model)
+
+  return etch(frozen(frozen(target, {
+    ...descriptors,
+    ...mixins.reduce(declare, descriptors)
+  })))
+}
+
+/**
+ * @template {Etched} Prototype
+ * @template {{}} Mixin
+ * @param {Prototype} instance
+ * @param {...Mixin} mixins
+ * @return {Prototype#prototype,Prototype,Mixin}
+ * @throws
+ */
+export function etch (instance, ...mixins) {
+  const model = prototype(instance)
+
+  if (!is(model, etched)) {
+    throw new ReferenceError('Instance must be etched')
+  }
+
+  const descriptors = getOwnPropertyDescriptors(model || {})
+
+  return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
 }
 
 function call (fn) {
   fn(...this)
+}
+
+function is (prototype, instance) {
+  return isPrototypeOf.call(prototype, instance)
 }
 
 function setter (from, to) {
@@ -101,5 +153,3 @@ function prototype (instance) {
 function frozen (instance, descriptors) {
   return freeze(create(instance, descriptors))
 }
-
-export default etched
