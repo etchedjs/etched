@@ -48,7 +48,7 @@ export function model (instance = null, ...mixins) {
   const target = instance === null ? etched : instance
   const model = prototype(target)
 
-  if (!is(model, etched)) {
+  if (!etches(etched, target)) {
     throw new ReferenceError('Instance must be etched or null')
   }
 
@@ -71,7 +71,7 @@ export function model (instance = null, ...mixins) {
 export function etch (instance, ...mixins) {
   const model = prototype(instance)
 
-  if (!is(model, etched)) {
+  if (!is(etched, model)) {
     throw new ReferenceError('Instance must be etched')
   }
 
