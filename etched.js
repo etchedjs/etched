@@ -135,7 +135,7 @@ function describe ([name, from]) {
   const { [name]: to } = this
 
   if (to && !to.set) {
-    throw new ReferenceError('Unsafe etching')
+    throw new ReferenceError('Unable to redeclare an etched constant')
   }
 
   return [

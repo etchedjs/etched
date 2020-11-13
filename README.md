@@ -134,11 +134,11 @@ A model etching can't redeclare a constant.
 ```js
 etched.model(model, {
   constant: 456
-}) // ReferenceError: 'Unsafe etching'
+}) // ReferenceError: 'Unable to redeclare an etched constant'
 
 etched.model(model, {
   set constant (value) {}
-}) // ReferenceError: 'Unsafe etching'
+}) // ReferenceError: 'Unable to redeclare an etched constant'
 ```
 
 ## A concrete example
