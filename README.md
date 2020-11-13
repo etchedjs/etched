@@ -141,6 +141,72 @@ etched.model(model, {
 }) // ReferenceError: 'Unsafe etching'
 ```
 
+## A concrete example
+
+```js
+import { etch, etches, model } from '@etchedjs/etched'
+
+const entity = model(null, {
+  set id (value) {
+    if (!Number.isSafeInteger(value) || value < 1) {
+      throw new ReferenceError('Must be a positive safe integer')
+    }
+  },
+  set createdAt (value) {
+    if (!Object.is(Date.prototype, Object.getPrototypeOf(value || {}))) {
+      throw new ReferenceError('Must be a Date')
+    }
+  }
+})
+
+const account = model(entity, {
+  set name (value) {
+    if (typeof value !== 'string' || !value.length) {
+      throw new ReferenceError('Must be a non-empty string')
+    }
+  },
+  set score (value) {
+    if (!Number.isSafeInteger(value) || value < 0 || value > 10) {
+      throw new ReferenceError('Must be a valid score')
+    }
+  }
+})
+
+const jack = etch(account, {
+  id: 123,
+  createdAt: new Date(),
+  name: 'Jack',
+  score: 9
+})
+
+const renamed = etch(account, jack, {
+  name: 'Jack-Renamed',
+  score: 10
+})
+
+console.log(jack) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack', score: 9 }
+console.log(renamed) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack-Renamed', score: 10 }
+console.log(etches(entity, account)) // true
+console.log(etches(entity, jack)) // true
+console.log(etches(account, jack)) // true
+console.log(etches(entity, renamed)) // true
+console.log(etches(account, renamed)) // true
+```
+
+Need to preserve the `entity` properties?
+
+```js
+const preserved = etch(account, jack, {
+  id: 456, // ignored
+  createdAt: new Date(), // ignored
+  name: 'Jack-Renamed',
+  score: 10
+}, etch(entity, jack))
+
+console.log(preserved) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack-Renamed', score: 10 }
+```
+
+
 ## Licence
 
 MIT
