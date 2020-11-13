@@ -88,24 +88,6 @@ etched.etches(model, instance) // true
 etched.etches(model, model) // true
 ```
 
-### `etched.preserve(constants, instance, ...mixins)
-
-Provides a way to etch an existing instance, but preserving the provided constants.
-
-**Constants must etch the instance**
-
-#### Example
-```js
-const instance = etched.etch(extended, {
-  dynamic: 456,
-  value: 789
-}) // { constant: 123, dynamic: 456, value: 789 }
-
-etched.preserve(model, instance, {
-  value: 0
-}) // { constant: 123, dynamic: 456, value: 0 }
-```
-
 ## Additional notes
 
 ### Cumulative setters
