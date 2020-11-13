@@ -179,7 +179,7 @@ const jack = etch(account, {
   score: 9
 })
 
-const renamed = etch(account, jack, {
+const renamed = etch(jack, {
   name: 'Jack-Renamed',
   score: 10
 })
