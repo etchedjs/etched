@@ -2,7 +2,14 @@
 
 _Etches your JS objects in stone_
 
-A utility to easily create some immutable objects by a chainable derivation, without any dependencies.
+A utility to easily create some immutable objects, without any dependencies.
+
+It provides:
+* Fully immutable
+* Lazy-setters, only declare the wanted properties and optionally validate them
+* Inherited constants, declare the properties that can't be overridden on the instances
+* Reduced prototype chain, an etched object always have its model as prototype
+* Auto-reconcile, based on the model, the etched objects never take any unwanted properties
 
 
 ## Install
@@ -75,6 +82,10 @@ Creates a new immutable instance, based on a previous one and the optional mixin
 const instance = etched.etch(model, {
   dynamic: 456
 }) // { constant: 123, dynamic: 456 }
+
+const copy = etched.etch(model, instance, {
+  dynamic: 789
+}) // { constant: 123, dynamic: 789 }
 ```
 
 ### `etched.etches(model, instance)

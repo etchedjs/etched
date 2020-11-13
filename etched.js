@@ -12,6 +12,7 @@
  */
 
 const {
+  assign,
   create,
   entries,
   freeze,
@@ -75,9 +76,10 @@ export function etch (instance, ...mixins) {
     throw new ReferenceError('`instance` must be etched')
   }
 
-  const descriptors = getOwnPropertyDescriptors(model || {})
+  const map = [instance, ...mixins].map(getOwnPropertyDescriptors)
+  const descriptors = getOwnPropertyDescriptors(model)
 
-  return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
+  return frozen(model, fill(descriptors, assign(...map)))
 }
 
 function call (fn) {
@@ -108,7 +110,7 @@ function value (from, to) {
   }
 }
 
-function assign ([name, to]) {
+function set ([name, to]) {
   const { [name]: from } = this
 
   return [
@@ -121,7 +123,7 @@ function assign ([name, to]) {
 
 function fill (descriptors, mixin) {
   return fromEntries(entries(descriptors)
-    .map(assign, getOwnPropertyDescriptors(mixin)))
+    .map(set, mixin))
 }
 
 function declare (descriptors, mixin) {
