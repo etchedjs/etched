@@ -80,28 +80,6 @@ export function etch (instance, ...mixins) {
   return frozen(model, [instance, ...mixins].reduce(fill, descriptors))
 }
 
-/**
- * @template {Etched} Constants
- * @template {Etched,{}<string|Symbol|set,*>} Mixin
- * @template {Etched,{}<string|Symbol|set,*>} Instance
- * @param {Constants} constants
- * @param {Instance} instance
- * @param {...Mixin} mixins
- * @return {Constants.prototype,Constants,Instance,Mixin}
- * @throws {ReferenceError}
- */
-export function preserve (constants, instance, ...mixins) {
-  const proto = prototype(instance)
-
-  if (!is(proto, instance)) {
-    throw ReferenceError('`constants` must etch the `instance`')
-  }
-
-  const preserved = model(frozen(proto), etch(constants, instance))
-
-  return etch(preserved, ...mixins, instance)
-}
-
 function call (fn) {
   fn(...this)
 }
