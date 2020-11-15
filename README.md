@@ -129,7 +129,7 @@ etched.etch(cumulative, {
 
 ### Unsafe etching
 
-A model etching can't redeclare a constant.
+A model etching can't redeclare a constant...
 
 ```js
 etched.model(model, {
@@ -140,6 +140,19 @@ etched.model(model, {
   set constant (value) {}
 }) // ReferenceError: 'Unable to redeclare an etched constant'
 ```
+
+... but an extension can declare a model property **as a constant**
+
+```js
+const model = etched.model(null, {
+  set constant (value) {}
+}) // { constant: Setter }
+
+const extended = etched.model(model, {
+  constant: 456
+}) // { constant: 456 }
+```
+
 
 ## A concrete example
 
