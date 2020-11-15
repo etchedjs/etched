@@ -19,7 +19,7 @@ It provides:
 Alternatively, in a browser, you can use it from the CDN:
 
 ```js
-import * as etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.js'
+import * as etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.min.js'
 ```
 
 ## Definitions
