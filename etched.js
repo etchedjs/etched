@@ -91,7 +91,7 @@ function is (prototype, instance) {
 }
 
 function setter (from, to) {
-  const setters = [to.set, from.set]
+  const setters = [from.set, to.set]
 
   return {
     set: value => setters.forEach(call, [value])
