@@ -1,7 +1,7 @@
 {
   "name": "@etchedjs/etched",
-  "version": "5.2.0",
-  "description": "A utility to easily create some immutable objects by a chainable derivation.",
+  "version": "5.2.1",
+  "description": "A utility to easily create some immutable objects, without any dependencies.",
   "main": "etched.js",
   "type": "module",
   "scripts": {
