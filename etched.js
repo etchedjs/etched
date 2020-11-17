@@ -25,6 +25,10 @@ const {
   isPrototypeOf
 } = Object
 
+const noop = {
+  set () {}
+}
+
 /**
  * @type {Etched}
  */
@@ -101,14 +105,14 @@ function setter (from, to) {
   }
 }
 
-function value (from, to) {
+function value (from, to, enumerable = false) {
   const { set } = to
   const { value } = from
 
   set(value)
 
   return {
-    enumerable: true,
+    enumerable,
     value
   }
 }
@@ -119,7 +123,7 @@ function set ([name, to]) {
   return [
     name,
     from && to.set && !from.set
-      ? value(from, to)
+      ? value(from, to, true)
       : to
   ]
 }
@@ -144,10 +148,12 @@ function describe ([name, from]) {
   return [
     name,
     !to
-      ? from
+      ? from.set
+        ? from
+        : value(from, noop)
       : to.set && from.set
-      ? setter(from, to)
-      : value(from, to)
+        ? setter(from, to)
+        : value(from, to)
   ]
 }
 
