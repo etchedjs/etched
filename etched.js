@@ -1,17 +1,8 @@
 /**
- * @module etchedjs/etched
+ * @module @etchedjs/etched
  * @copyright Lcf.vs 2020
  * @licence MIT
  * @see {@link https://github.com/etchedjs/etched|Etched on GitHub}
- */
-
-/**
- * @typedef {{}} Model
- */
-
-/**
- * @typedef {Readonly,{}<string|symbol|set,*>} Etched
- * @augments Model
  */
 
 const {
@@ -29,29 +20,12 @@ const noop = {
   set () {}
 }
 
-/**
- * @type {Etched}
- */
 export const etched = frozen(frozen(null))
 
-/**
- *
- * @param {Etched} instance
- * @param {Model} model
- * @return {Boolean}
- */
 export function etches (model, instance) {
   return is(prototype(model), instance)
 }
 
-/**
- * @template {Etched|null} Prototype
- * @template {{}<string|Symbol|set,*>} Mixin
- * @param {Prototype} instance
- * @param {...Mixin} mixins
- * @return {Etched#prototype,Etched,Prototype,Mixin}
- * @throws {ReferenceError}
- */
 export function model (instance = null, ...mixins) {
   const target = instance === null ? etched : instance
   const model = prototype(target)
@@ -68,14 +42,6 @@ export function model (instance = null, ...mixins) {
   })))
 }
 
-/**
- * @template {Etched} Prototype
- * @template {{}} Mixin
- * @param {Prototype} instance
- * @param {...Mixin} mixins
- * @return {Prototype#prototype,Prototype,Mixin}
- * @throws {ReferenceError}
- */
 export function etch (instance, ...mixins) {
   const model = prototype(instance)
 
