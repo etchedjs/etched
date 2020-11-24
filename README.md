@@ -1,5 +1,7 @@
 # @etchedjs/etched
 
+[![](https://raw.githubusercontent.com/Lcfvs/library-peer/main/badge.svg)](https://github.com/Lcfvs/library-peer#readme)
+
 _Etches your JS objects in stone_
 
 A utility to easily create some immutable objects, without any dependencies.

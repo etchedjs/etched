@@ -1,6 +1,6 @@
 {
   "name": "@etchedjs/etched",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "A utility to easily create some immutable objects, without any dependencies.",
   "main": "etched.js",
   "type": "module",
