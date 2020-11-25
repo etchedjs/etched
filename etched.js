@@ -6,7 +6,6 @@
  */
 
 const {
-  assign,
   create,
   entries,
   freeze,
@@ -49,10 +48,27 @@ export function etch (instance, ...mixins) {
     throw new ReferenceError('`instance` must be etched')
   }
 
-  const map = [instance, ...mixins].map(getOwnPropertyDescriptors)
   const descriptors = getOwnPropertyDescriptors(model)
+  const setters = entries(descriptors).filter(hasSetter)
+  const map = mixins.map(merge, setters).flat()
 
-  return frozen(model, fill(descriptors, assign(...map)))
+  return frozen(model, map.reduce(set, descriptors))
+}
+
+function hasSetter ([, { set }]) {
+  return set
+}
+
+function merge (mixin) {
+  return this.map(extract, mixin)
+}
+
+function extract ([name]) {
+  const { [name]: value } = this
+
+  return value === undefined
+    ? []
+    : [name, value]
 }
 
 function call (fn) {
@@ -83,20 +99,18 @@ function value (from, to, enumerable = false) {
   }
 }
 
-function set ([name, to]) {
-  const { [name]: from } = this
+function set (descriptors, [name, value]) {
+  const { [name]: { set } } = descriptors
 
-  return [
-    name,
-    from && to.set && !from.set
-      ? value(from, to, true)
-      : to
-  ]
-}
+  set(value)
 
-function fill (descriptors, mixin) {
-  return fromEntries(entries(descriptors)
-    .map(set, mixin))
+  return {
+    ...descriptors,
+    [name]: {
+      enumerable: true,
+      value
+    }
+  }
 }
 
 function declare (descriptors, mixin) {
