@@ -15,132 +15,139 @@ const {
   isPrototypeOf
 } = Object
 
+const symbol = Symbol('@etchedjs/etched')
+
 const noop = {
   set () {}
 }
 
-export const etched = frozen(frozen(null))
-
-export function etches (model, instance) {
-  return is(prototype(model), instance)
-}
-
-export function model (instance = null, ...mixins) {
-  const target = instance === null ? etched : instance
-  const model = prototype(target)
-
-  if (!etches(etched, target)) {
-    throw new ReferenceError('`instance` must be etched or `null`')
+const prototype = frozen(null, {
+  [symbol]: {
+    value: freeze([])
   }
-
-  const descriptors = getOwnPropertyDescriptors(model)
-
-  return etch(frozen(frozen(target, {
-    ...descriptors,
-    ...mixins.reduce(declare, descriptors)
-  })))
-}
+})
 
 export function etch (instance, ...mixins) {
-  const model = prototype(instance)
-
-  if (!is(etched, model)) {
+  if (!is(prototype, instance)) {
     throw new ReferenceError('`instance` must be etched')
   }
 
+  const model = getPrototypeOf(instance)
   const descriptors = getOwnPropertyDescriptors(model)
-  const setters = entries(descriptors).filter(hasSetter)
-  const map = mixins.map(merge, setters).flat()
+  const setters = entries(descriptors).filter(settable)
+  const map = [instance, ...mixins]
+    .map(entry, setters)
+    .flat()
+    .filter(Boolean)
 
-  return frozen(model, map.reduce(set, descriptors))
+  return frozen(model, {
+    ...fromEntries(map)
+  })
 }
 
-function hasSetter ([, { set }]) {
-  return set
+export const etched = frozen(prototype)
+
+export function etches (model, instance) {
+  return is(prototype, model)
+    && is(prototype, instance)
+    && matches.call(model[symbol], instance)
 }
 
-function merge (mixin) {
-  return this.map(extract, mixin)
+export function model (...models) {
+  const value = freeze(models.map(mixin))
+
+  const descriptors = value
+    .map(getPrototypeOf)
+    .reduce(merge, {})
+
+  const model = frozen(prototype, {
+    ...descriptors,
+    [symbol]: {
+      value,
+      enumerable: true
+    }
+  })
+
+  return frozen(model, descriptors)
 }
 
-function extract ([name]) {
-  const { [name]: value } = this
+function describe (current, [name, { value, ...descriptor }]) {
+  const { [name]: { set } = noop } = current
+  let result = {}
 
-  return value === undefined
-    ? []
-    : [name, value]
+  if (descriptor.set) {
+    result.enumerable = true
+
+    if (set) {
+      result.set = value => [descriptor.set, set].forEach(call, [value])
+    } else {
+      result.set = descriptor.set
+    }
+  } else if (set) {
+    result.value = value
+  } else  {
+    throw new ReferenceError('Unable to redeclare an etched constant')
+  }
+
+  return {
+    ...current,
+    [name]: result
+  }
 }
 
 function call (fn) {
   fn(...this)
 }
 
+function entry (mixin) {
+  return this.map(extract, mixin)
+}
+
+function extract ([name, { set }]) {
+  const { [name]: value } = this
+
+  if (value !== undefined) {
+    set(value)
+
+    return [name, {
+      enumerable: true,
+      value
+    }]
+  }
+}
+
+function frozen (instance = null, descriptors = {}) {
+  return freeze(create(instance, descriptors))
+}
+
 function is (prototype, instance) {
   return isPrototypeOf.call(prototype, instance)
 }
 
-function setter (from, to) {
-  const setters = [from.set, to.set]
+function matches (instance) {
+  const { [symbol]: models = [] } = instance
 
-  return {
-    set: value => setters.forEach(call, [value])
-  }
+  return models === this || models.some(matches, this)
 }
 
-function value (from, to, enumerable = false) {
-  const { set } = to
-  const { value } = from
+function merge (current, prototype) {
+  const { [symbol]: e, ...rest } = getOwnPropertyDescriptors(prototype)
 
-  set(value)
-
-  return {
-    enumerable,
-    value
-  }
+  return entries(rest)
+    .reduce(describe, current)
 }
 
-function set (descriptors, [name, value]) {
-  const { [name]: { set } } = descriptors
-
-  set(value)
-
-  return {
-    ...descriptors,
-    [name]: {
-      enumerable: true,
-      value
-    }
-  }
+function mixin (mixin) {
+  return is(prototype, mixin)
+    ? mixin
+    : frozen(frozen(prototype, {
+      ...getOwnPropertyDescriptors(mixin),
+      [symbol]: {
+        value: []
+      }
+    }))
 }
 
-function declare (descriptors, mixin) {
-  return fromEntries(entries(getOwnPropertyDescriptors(mixin))
-    .map(describe, descriptors))
-}
-
-function describe ([name, from]) {
-  const { [name]: to } = this
-
-  if (to && !to.set) {
-    throw new ReferenceError('Unable to redeclare an etched constant')
-  }
-
-  return [
-    name,
-    !to
-      ? from.set
-        ? from
-        : value(from, noop)
-      : to.set && from.set
-        ? setter(from, to)
-        : value(from, to)
-  ]
-}
-
-function prototype (instance) {
-  return instance ? getPrototypeOf(instance) : instance
-}
-
-function frozen (instance, descriptors) {
-  return freeze(create(instance, descriptors))
+function settable ([, { set }]) {
+  return set
 }

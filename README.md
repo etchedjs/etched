@@ -4,10 +4,11 @@
 
 _Etches your JS objects in stone_
 
-A utility to easily create some immutable objects, without any dependencies.
+A utility to easily create some immutable objects, based on multiple etched inheritance.
 
 It provides:
 * Fully immutable
+* Multiple etched inheritance
 * Lazy-setters, only declare the wanted properties and optionally validate them
 * Inherited constants, declare the properties that can't be overridden on the instances
 * Reduced prototype chain, an etched object always have its model as prototype
@@ -24,17 +25,6 @@ Alternatively, in a browser, you can use it from the CDN:
 import * as etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.min.js'
 ```
 
-## Definitions
-
-### Instance
-
-A frozen object, based on a model object, by default: `etched.etched`
-
-### Mixin
-
-A mixin is an object provided to create an extension of the current instance.
-
-
 ## API
 
 ### etched.etched
@@ -47,9 +37,9 @@ etched.etched // {}
 
 ### etched.model
 
-`etched.model([instance|null], ...mixins)`
+`etched.model(...models)`
 
-Creates a new immutable **model**, based on optional etched instance and/or mixin.
+Creates a new immutable **model**, based on optional models.
 
 It declares constants (direct value) and setters (to validate dynamic values)
 
@@ -57,7 +47,7 @@ It also acts as an instance.
 
 #### Example
 ```js
-const model = etched.model(null, {
+const model = etched.model({
   constant: 123,
   set dynamic (value) {
     if (isNaN(value)) {
@@ -146,7 +136,7 @@ etched.model(model, {
 ... but an extension can declare a model property **as a constant**
 
 ```js
-const model = etched.model(null, {
+const model = etched.model({
   set constant (value) {}
 })
 
@@ -161,7 +151,7 @@ const extended = etched.model(model, {
 ```js
 import { etch, etches, model } from '@etchedjs/etched'
 
-const entity = model(null, {
+const entity = model({
   set id (value) {
     if (!Number.isSafeInteger(value) || value < 1) {
       throw new ReferenceError('Must be a positive safe integer')
