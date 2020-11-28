@@ -15,27 +15,31 @@ type IntersectAll<I extends object[]> = I extends (infer T)[]
         : never
     : never;
 
-export type Model<I extends Etched | null, M extends object[]> = Readonly<
+export type Model<M extends object[]> = Readonly<
     Etched &
-    I &
-    Pick<I, keyof I> | IntersectAll<M>>
+    M extends [infer T, ...infer R]
+    ? R extends object[]
+    ? T extends object
+        ? T & Model<R>
+        : T
+    : {}
+    : unknown>
 
-export type Instance<I extends Model<Etched, []>, M extends object[]> = Readonly<
+export type Instance<I extends Model<[]>, M extends object[]> = Readonly<
     I &
     Pick<IntersectAll<M>, Extract<keyof I, keyof IntersectAll<M>>> &
     Omit<I, keyof IntersectAll<M>>
     >
 
-export declare const etched: Etched;
+export declare const etched: Model<[Etched]>;
 
-export declare function model<I extends Etched, M extends object[]>(
-    instance: I | null,
-    ...mixins: M
-): Model<I, M>;
+export declare function model<M extends object[]>(
+    ...models: M
+): Model<M>;
 
-export declare function etch<I extends Etched, M extends Partial<I>[]>(
+export declare function etch<I extends Model<[]>, M extends Partial<I>[]>(
     instance: I,
     ...mixins: M
 ): Instance<I, M>;
 
-export declare function etches(model: Etched, instance: unknown): boolean;
+export declare function etches(model: Model<[]>, instance: unknown): boolean;
