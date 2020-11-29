@@ -56,7 +56,7 @@ export function etches (model, instance) {
 export function model (...models) {
   const value = freeze(models.map(mixin))
 
-  const descriptors = value
+  const descriptors = [...new Set(value.reduce(flatten, []))]
     .map(getPrototypeOf)
     .reduce(merge, {})
 
@@ -114,6 +114,15 @@ function extract ([name, { set }]) {
       value
     }]
   }
+}
+
+function flatten (models, instance) {
+  const { [symbol]: inherited = [] } = instance
+
+  return inherited.reduce(flatten, [
+    ...inherited,
+    ...models
+  ])
 }
 
 function frozen (instance = null, descriptors = {}) {

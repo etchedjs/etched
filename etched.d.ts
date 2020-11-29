@@ -5,7 +5,8 @@
  * @see {@link https://github.com/etchedjs/etched} Etched on GitHub
  */
 
-declare class Empty extends null {}
+declare class Empty extends null {
+}
 
 type Etched = Readonly<Empty & {}>;
 
@@ -15,21 +16,17 @@ type IntersectAll<I extends object[]> = I extends (infer T)[]
         : never
     : never;
 
-export type Model<M extends object[]> = Readonly<
-    Etched &
-    M extends [infer T, ...infer R]
+export type Model<M extends object[]> = Readonly<M extends [infer T, ...infer R]
     ? R extends object[]
-    ? T extends object
-        ? T & Model<R>
-        : T
-    : {}
+        ? T extends object
+            ? T & Model<R>
+            : T
+        : Etched
     : unknown>
 
-export type Instance<I extends Model<[]>, M extends object[]> = Readonly<
-    I &
+export type Instance<I extends Model<[]>, M extends object[]> = Readonly<I &
     Pick<IntersectAll<M>, Extract<keyof I, keyof IntersectAll<M>>> &
-    Omit<I, keyof IntersectAll<M>>
-    >
+    Omit<I, keyof IntersectAll<M>>>
 
 export declare const etched: Model<[Etched]>;
 
