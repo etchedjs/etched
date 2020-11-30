@@ -23,8 +23,11 @@ export const etched = context(null, freeze({
 export function etch (instance, ...mixins) {
   const context = extract(instance)
   const { rules } = context
+  const merged = rules
+    .map(mix, [instance, ...mixins])
+    .map(merge)
 
-  return build(context, fromEntries(rules.map(mix, mixins).map(merge)))
+  return build(context, fromEntries(merged))
 }
 
 export function etches (model, instance) {
