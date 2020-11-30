@@ -33,9 +33,10 @@ export function etch (instance, ...mixins) {
 export function etches (model, instance) {
   const context = extract(model)
   const current = extract(instance || {}, false)
+  const { prototypes = [] } = context
 
   return current === context
-    || current.prototypes.includes(context.prototypes[0])
+    || prototypes.includes(context.prototypes[0])
 }
 
 export function model (...models) {
