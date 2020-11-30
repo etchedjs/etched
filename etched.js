@@ -10,153 +10,166 @@ const {
   entries,
   freeze,
   fromEntries,
-  getOwnPropertyDescriptors,
-  getPrototypeOf,
-  isPrototypeOf
+  getOwnPropertyDescriptors
 } = Object
 
 const symbol = Symbol('@etchedjs/etched')
 
-const noop = {
-  set () {}
-}
-
-const prototype = frozen(null, {
-  [symbol]: {
-    value: freeze([])
-  }
-})
+export const etched = context(null, freeze({
+  prototypes: freeze([freeze([])]),
+  rules: freeze([])
+}))
 
 export function etch (instance, ...mixins) {
-  if (!is(prototype, instance)) {
-    throw new ReferenceError('`instance` must be etched')
-  }
+  const context = extract(instance)
+  const { rules } = context
 
-  const model = getPrototypeOf(instance)
-  const descriptors = getOwnPropertyDescriptors(model)
-  const setters = entries(descriptors).filter(settable)
-  const map = [instance, ...mixins]
-    .map(entry, setters)
-    .flat()
-    .filter(Boolean)
-
-  return frozen(model, {
-    ...fromEntries(map)
-  })
+  return build(context, fromEntries(rules.map(mix, mixins).map(merge)))
 }
 
-export const etched = frozen(prototype)
-
 export function etches (model, instance) {
-  return is(prototype, model)
-    && is(prototype, instance)
-    && matches.call(model[symbol], instance)
+  const context = extract(model)
+  const current = extract(instance || {}, false)
+
+  return current === context
+    || current.prototypes.includes(context.prototypes[0])
 }
 
 export function model (...models) {
-  const value = freeze(models.map(mixin))
+  const prototypes = freeze([etched, ...models].map(parse).flat())
 
-  const descriptors = [...new Set(value.reduce(flatten, []))]
-    .map(getPrototypeOf)
-    .reduce(merge, {})
+  const rules = freeze(entries(prototypes
+    .flat()
+    .reduce(rule, [{}])
+    .shift())
+    .map(freeze))
 
-  const model = frozen(prototype, {
-    ...descriptors,
-    [symbol]: {
-      value,
-      enumerable: true
-    }
+  return build(freeze({ prototypes, rules }), fromEntries(rules.map(merge)))
+}
+
+function build (value, descriptors) {
+  return frozen(context(etched, value), descriptors)
+}
+
+function context (prototype, value) {
+  return frozen(prototype, {
+    [symbol]: { value }
   })
-
-  return frozen(model, descriptors)
 }
 
-function describe (current, [name, { value, ...descriptor }]) {
-  const { [name]: { set } = noop } = current
-  let result = {}
+function describe ([name, { set, value, get = () => value } ]) {
+  return freeze([name, freeze({ get, set })])
+}
 
-  if (descriptor.set) {
-    result.enumerable = true
+function extract (instance, error = true) {
+  const { [symbol]: context } = instance
 
-    if (set) {
-      result.set = value => [descriptor.set, set].forEach(call, [value])
-    } else {
-      result.set = descriptor.set
-    }
-  } else if (set) {
-    result.value = value
-  } else  {
-    throw new ReferenceError('Unable to redeclare an etched constant')
+  if (error && !context) {
+    throw new ReferenceError('An instance must be etched')
   }
 
-  return {
-    ...current,
-    [name]: result
-  }
+  return context || {}
 }
 
-function call (fn) {
-  fn(...this)
-}
+function fill ([descriptors, name], mixin) {
+  const { [name]: value } = mixin
 
-function entry (mixin) {
-  return this.map(extract, mixin)
-}
-
-function extract ([name, { set }]) {
-  const { [name]: value } = this
-
-  if (value !== undefined) {
-    set(value)
-
-    return [name, {
-      enumerable: true,
-      value
-    }]
-  }
-}
-
-function flatten (models, instance) {
-  const { [symbol]: inherited = [] } = instance
-
-  return inherited.reduce(flatten, [
-    ...inherited,
-    ...models
-  ])
+  return [
+    [
+      ...value === undefined
+        ? []
+        : [
+          {
+            get: () => value
+          }
+        ],
+      ...descriptors
+    ],
+    name
+  ]
 }
 
 function frozen (instance = null, descriptors = {}) {
   return freeze(create(instance, descriptors))
 }
 
-function is (prototype, instance) {
-  return isPrototypeOf.call(prototype, instance)
+function merge ([name, rules]) {
+  const { get, set } = rules.reduce(reduce)
+
+  return [
+    name,
+    {
+      enumerable: true,
+      ...set
+        ? { set }
+        : {
+          value: get()
+        }
+    }
+  ]
 }
 
-function matches (instance) {
-  const { [symbol]: models = [] } = instance
+function mix ([name, descriptors]) {
+  const [{ set }] = descriptors
 
-  return models === this || models.some(matches, this)
+  return [
+    name,
+    set
+      ? this.reduce(fill, [descriptors, name]).shift()
+      : descriptors
+  ]
 }
 
-function merge (current, prototype) {
-  const { [symbol]: e, ...rest } = getOwnPropertyDescriptors(prototype)
-
-  return entries(rest)
-    .reduce(describe, current)
+function parse (model) {
+  return extract(model, false).prototypes
+    || [freeze(entries(getOwnPropertyDescriptors(model)).map(describe))]
 }
 
-function mixin (mixin) {
-  return is(prototype, mixin)
-    ? mixin
-    : frozen(frozen(prototype, {
-      ...getOwnPropertyDescriptors(mixin),
-      [symbol]: {
-        value: []
-      }
-    }))
+function reduce (previous, { get, set }) {
+  if (previous.get && !previous.set && set) {
+    set(previous.get())
+  }
+
+  return previous.get
+    ? previous
+    : { get, set }
 }
 
-function settable ([, { set }]) {
-  return set
+function rule ([rules, seen = {}], [name, { get, set }]) {
+  const { [name]: descriptor = [] } = rules
+  const { [name]: methods = [] } = seen
+  const [previous] = descriptor
+  const dedupes = [
+    ...dedupe(methods, get),
+    ...dedupe(methods, set)
+  ]
+
+  if (previous && !previous.set && (set || get !== previous.get)) {
+    throw new ReferenceError('illegal constant')
+  }
+
+  return [
+    {
+      ...rules,
+      [name]: freeze([
+        ...dedupes.length
+          ? [freeze({ get, set })]
+          : [],
+        ...descriptor
+      ])
+    },
+    {
+      ...seen,
+      [name]: [
+        ...methods,
+        ...dedupes
+      ]
+    }
+  ]
+}
+
+function dedupe (methods, method) {
+  return methods.includes(method)
+    ? []
+    : [method]
 }

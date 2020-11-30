@@ -54,11 +54,11 @@ const model = etched.model({
       throw new ReferenceError('Must be a number')
     }
   }
-}) // model = { dynamic: Setter } && model.constant = 123
+}) // { constant: 123, dynamic: Setter }
 
 const extended = etched.model(model, {
   set value (value) {}
-}) // extended = { dynamic: Setter, value: Setter } && extended.constant = 123
+}) // { constant: 123, dynamic: Setter, value: Setter }
 ```
 
 ### `etch.etch(instance, ...mixins)`
@@ -73,11 +73,11 @@ Creates a new immutable instance, based on a previous one and the optional mixin
 ```js
 const instance = etched.etch(model, {
   dynamic: 456
-}) // { dynamic: 456 }
+}) // { constant: 123, dynamic: 456 }
 
 const copy = etched.etch(model, instance, {
   dynamic: 789
-}) // { dynamic: 789 }
+}) // { constant: 123, dynamic: 789 }
 ```
 
 ### `etched.etches(model, instance)
@@ -116,7 +116,7 @@ etched.etch(cumulative, {
 
 etched.etch(cumulative, {
   dynamic: 456
-}) // { dynamic: 456 }
+}) // { constant: 123, dynamic: 456 }
 ```
 
 ### Unsafe etching
@@ -142,7 +142,7 @@ const model = etched.model({
 
 const extended = etched.model(model, {
   constant: 456
-}) // extended.constant = 456
+}) // { constant: 456 }
 ```
 
 
