@@ -149,7 +149,7 @@ function rule ([rules, seen = {}], [name, { get, set }]) {
   ]
 
   if (previous && !previous.set && (set || get !== previous.get)) {
-    throw new ReferenceError('illegal constant')
+    throw new ReferenceError('Unable to redeclare an etched constant')
   }
 
   return [
