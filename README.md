@@ -15,6 +15,21 @@ It provides:
 * Auto-reconcile, based on the model, the etched objects never take any unwanted properties
 
 
+## How etched resolves the (multiple) inheritance problems
+
+### The [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem)
+
+✓ The **etched** objects are immutables, then there is only one possible implementation for an instance.
+
+### The member collisions
+
+✓ There is no way to redeclare a **member with the same name**, except if it's strictly the same member, it doesn't rely on the value.
+
+### Mocking difficulties
+
+✓ By design, the inheritance is based on composition, you can easily mock everything as you want.
+
+
 ## Install
 
 `npm i @etchedjs/etched`
