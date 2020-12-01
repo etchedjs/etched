@@ -6,6 +6,7 @@
  */
 
 const {
+  assign,
   create,
   entries,
   freeze,
@@ -44,7 +45,7 @@ export function model (...models) {
 
   const rules = freeze(entries(prototypes
     .flat()
-    .reduce(rule, [{}])
+    .reduce(rule, [spread()])
     .shift())
     .map(freeze))
 
@@ -59,6 +60,12 @@ function context (prototype, value) {
   return frozen(prototype, {
     [symbol]: { value }
   })
+}
+
+function dedupe (methods, method) {
+  return methods.includes(method)
+    ? []
+    : [method]
 }
 
 function describe ([name, { set, value, get = () => value } ]) {
@@ -143,7 +150,7 @@ function rule ([rules, seen = {}], [name, { get, set }]) {
   const { [name]: descriptor = [] } = rules
   const { [name]: methods = [] } = seen
   const [previous] = descriptor
-  const dedupes = [
+  const uniques = [
     ...dedupe(methods, get),
     ...dedupe(methods, set)
   ]
@@ -153,27 +160,23 @@ function rule ([rules, seen = {}], [name, { get, set }]) {
   }
 
   return [
-    {
-      ...rules,
+    spread(rules, {
       [name]: freeze([
-        ...dedupes.length
+        ...uniques.length
           ? [freeze({ get, set })]
           : [],
         ...descriptor
       ])
-    },
-    {
-      ...seen,
+    }),
+    spread(seen, {
       [name]: [
         ...methods,
-        ...dedupes
+        ...uniques
       ]
-    }
+    })
   ]
 }
 
-function dedupe (methods, method) {
-  return methods.includes(method)
-    ? []
-    : [method]
+function spread (current = {}, mixin = {}) {
+  return assign(create(null), current, mixin)
 }
