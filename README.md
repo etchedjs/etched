@@ -19,7 +19,7 @@ It provides:
 
 ### The [diamond problem](https://en.wikipedia.org/wiki/Multiple_inheritance#The_diamond_problem)
 
-✓ The **etched** objects are immutables, then there is only one possible implementation for an instance.
+✓ The **etched** objects are immutables, then there is only one possible implementation for an instance... and the members are merged on the instance itself (no `super()`).
 
 ### The member collisions
 
