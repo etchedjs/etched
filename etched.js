@@ -3,6 +3,7 @@
  * @copyright Lcf.vs 2020
  * @licence MIT
  * @see {@link https://github.com/etchedjs/etched|Etched on GitHub}
+ * @preserve
  */
 
 const {
@@ -36,8 +37,8 @@ export function etches (model, instance) {
   const current = extract(instance || {}, false)
   const { prototypes = [] } = context
 
-  return current === context
-    || prototypes.includes(context.prototypes[0])
+  return current === context ||
+    prototypes.includes(context.prototypes[0])
 }
 
 export function model (...models) {
@@ -68,7 +69,7 @@ function dedupe (methods, method) {
     : [method]
 }
 
-function describe ([name, { set, value, get = () => value } ]) {
+function describe ([name, { set, value, get = () => value }]) {
   return freeze([name, freeze({ get, set })])
 }
 
@@ -90,10 +91,10 @@ function fill ([descriptors, name], mixin) {
       ...value === undefined
         ? []
         : [
-          {
-            get: () => value
-          }
-        ],
+            {
+              get: () => value
+            }
+          ],
       ...descriptors
     ],
     name
@@ -114,8 +115,8 @@ function merge ([name, rules]) {
       ...set
         ? { set }
         : {
-          value: get()
-        }
+            value: get()
+          }
     }
   ]
 }
@@ -132,8 +133,8 @@ function mix ([name, descriptors]) {
 }
 
 function parse (model) {
-  return extract(model, false).prototypes
-    || [freeze(entries(getOwnPropertyDescriptors(model)).map(describe))]
+  return extract(model, false).prototypes ||
+    [freeze(entries(getOwnPropertyDescriptors(model)).map(describe))]
 }
 
 function reduce (previous, { get, set }) {

@@ -40,6 +40,63 @@ Alternatively, in a browser, you can use it from the CDN:
 import * as etched from 'https://unpkg.com/@etchedjs/etched@latest/etched.min.js'
 ```
 
+## A concrete example
+
+```js
+import { etch, etches, model } from '@etchedjs/etched'
+
+const entity = model({
+  set id (value) {
+    if (!Number.isSafeInteger(value) || value < 1) {
+      throw new ReferenceError('Must be a positive safe integer')
+    }
+  },
+  set createdAt (value) {
+    if (!Object.is(Date.prototype, Object.getPrototypeOf(value || {}))) {
+      throw new ReferenceError('Must be a Date')
+    }
+  }
+})
+
+const account = model({
+  set name (value) {
+    if (typeof value !== 'string' || !value.length) {
+      throw new ReferenceError('Must be a non-empty string')
+    }
+  },
+  set score (value) {
+    if (!Number.isSafeInteger(value) || value < 0 || value > 10) {
+      throw new ReferenceError('Must be a valid score')
+    }
+  }
+})
+
+const accountEntity = model(entity, account)
+
+const jack = etch(accountEntity, {
+  id: 123,
+  createdAt: new Date(),
+  name: 'Jack',
+  score: 9
+})
+
+const renamed = etch(jack, {
+  name: 'Jack-Renamed',
+  score: 10
+})
+
+console.log(jack) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack', score: 9 }
+console.log(renamed) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack-Renamed', score: 10 }
+console.log(etches(entity, accountEntity)) // true
+console.log(etches(account, accountEntity)) // true
+console.log(etches(entity, jack)) // true
+console.log(etches(account, jack)) // true
+console.log(etches(accountEntity, jack)) // true
+console.log(etches(entity, renamed)) // true
+console.log(etches(account, renamed)) // true
+console.log(etches(accountEntity, renamed)) // true
+```
+
 ## API
 
 ### etched.etched
@@ -158,72 +215,6 @@ const model = etched.model({
 const extended = etched.model(model, {
   constant: 456
 }) // { constant: 456 }
-```
-
-
-## A concrete example
-
-```js
-import { etch, etches, model } from '@etchedjs/etched'
-
-const entity = model({
-  set id (value) {
-    if (!Number.isSafeInteger(value) || value < 1) {
-      throw new ReferenceError('Must be a positive safe integer')
-    }
-  },
-  set createdAt (value) {
-    if (!Object.is(Date.prototype, Object.getPrototypeOf(value || {}))) {
-      throw new ReferenceError('Must be a Date')
-    }
-  }
-})
-
-const account = model(entity, {
-  set name (value) {
-    if (typeof value !== 'string' || !value.length) {
-      throw new ReferenceError('Must be a non-empty string')
-    }
-  },
-  set score (value) {
-    if (!Number.isSafeInteger(value) || value < 0 || value > 10) {
-      throw new ReferenceError('Must be a valid score')
-    }
-  }
-})
-
-const jack = etch(account, {
-  id: 123,
-  createdAt: new Date(),
-  name: 'Jack',
-  score: 9
-})
-
-const renamed = etch(jack, {
-  name: 'Jack-Renamed',
-  score: 10
-})
-
-console.log(jack) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack', score: 9 }
-console.log(renamed) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack-Renamed', score: 10 }
-console.log(etches(entity, account)) // true
-console.log(etches(entity, jack)) // true
-console.log(etches(account, jack)) // true
-console.log(etches(entity, renamed)) // true
-console.log(etches(account, renamed)) // true
-```
-
-Need to preserve the `entity` properties?
-
-```js
-const preserved = etch(account, jack, {
-  id: 456, // ignored
-  createdAt: new Date(), // ignored
-  name: 'Jack-Renamed',
-  score: 10
-}, etch(entity, jack))
-
-console.log(preserved) // {  id: 123, createdAt: 2020-11-12T19:54:12.979Z, name: 'Jack-Renamed', score: 10 }
 ```
 
 

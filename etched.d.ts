@@ -28,7 +28,7 @@ export type Instance<I extends Model<[]>, M extends object[]> = Readonly<I &
     Pick<IntersectAll<M>, Extract<keyof I, keyof IntersectAll<M>>> &
     Omit<I, keyof IntersectAll<M>>>
 
-export declare const etched: Model<[Etched]>;
+export declare const etched: Model<[Etched]>
 
 export declare function model<M extends object[]>(
     ...models: M
