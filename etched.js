@@ -50,7 +50,9 @@ export function model (...models) {
     .shift())
     .map(freeze))
 
-  return build(freeze({ prototypes, rules }), fromEntries(rules.map(merge)))
+  const model = build(freeze({ prototypes, rules }), fromEntries(rules.map(merge)))
+
+  return etch(model, ...models)
 }
 
 function build (value, descriptors) {
@@ -91,10 +93,10 @@ function fill ([descriptors, name], mixin) {
       ...value === undefined
         ? []
         : [
-            {
-              get: () => value
-            }
-          ],
+          {
+            get: () => value
+          }
+        ],
       ...descriptors
     ],
     name
@@ -115,8 +117,8 @@ function merge ([name, rules]) {
       ...set
         ? { set }
         : {
-            value: get()
-          }
+          value: get()
+        }
     }
   ]
 }
