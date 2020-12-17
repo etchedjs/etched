@@ -26,7 +26,7 @@ export function etch (instance, ...mixins) {
   const context = extract(instance)
   const { rules } = context
   const merged = rules
-    .map(mix, [instance, ...mixins])
+    .map(mix, [instance, ...mixins.map(object)])
     .map(merge)
 
   return build(context, fromEntries(merged))
@@ -107,6 +107,13 @@ function frozen (instance = null, descriptors = {}) {
   return freeze(create(instance, descriptors))
 }
 
+function item (model, value, key) {
+  return {
+    ...model,
+    [key]: value
+  }
+}
+
 function merge ([name, rules]) {
   const { get, set } = rules.reduce(reduce)
 
@@ -134,9 +141,15 @@ function mix ([name, descriptors]) {
   ]
 }
 
+function object (model) {
+  return Array.isArray(model)
+    ? model.reduce(item, {})
+    : model
+}
+
 function parse (model) {
   return extract(model, false).prototypes ||
-    [freeze(entries(getOwnPropertyDescriptors(model)).map(describe))]
+    [freeze(entries(getOwnPropertyDescriptors(object(model))).map(describe))]
 }
 
 function reduce (previous, { get, set }) {
