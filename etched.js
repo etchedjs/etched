@@ -9,13 +9,16 @@
 const {
   assign,
   create,
-  entries,
   freeze,
   fromEntries,
-  getOwnPropertyDescriptors
+  getOwnPropertyDescriptors,
+  getOwnPropertySymbols,
+  keys
 } = Object
 
 const symbol = Symbol('@etchedjs/etched')
+
+const key = Array.prototype.includes.bind(['string', 'symbol'])
 
 export const etched = context(null, freeze({
   prototypes: freeze([freeze([])]),
@@ -35,24 +38,33 @@ export function etch (instance, ...mixins) {
 export function etches (model, instance) {
   const context = extract(model)
   const current = extract(instance || {}, false)
-  const { prototypes = [] } = context
+  const { prototypes = [] } = current
 
   return current === context ||
-    prototypes.includes(context.prototypes[0])
+    prototypes.some(inherits, context.prototypes)
 }
 
 export function model (...models) {
-  const prototypes = freeze([etched, ...models].map(parse).flat())
+  const prototypes = freeze(uniques([etched, ...models].map(parse)))
 
-  const rules = freeze(entries(prototypes
-    .flat()
+  const reduced = prototypes
+    .flatMap(pairs)
     .reduce(rule, [spread()])
-    .shift())
-    .map(freeze))
+    .shift()
+
+  const rules = freeze(uniques(entries(reduced).map(freeze)))
 
   const model = build(freeze({ prototypes, rules }), fromEntries(rules.map(merge)))
 
   return etch(model, ...models)
+}
+
+function pairs (value) {
+  const [first] = value
+
+  return key(typeof first)
+    ? [value]
+    : value.flatMap(pairs)
 }
 
 function build (value, descriptors) {
@@ -75,6 +87,14 @@ function describe ([name, { set, value, get = () => value }]) {
   return freeze([name, freeze({ get, set })])
 }
 
+function entries (target) {
+  const names = keys(target)
+  const symbols = getOwnPropertySymbols(target).filter(filter)
+
+  return [...names, ...symbols]
+    .map(map, target)
+}
+
 function extract (instance, error = true) {
   const { [symbol]: context } = instance
 
@@ -83,6 +103,10 @@ function extract (instance, error = true) {
   }
 
   return context || {}
+}
+
+function filter (current) {
+  return current !== symbol
 }
 
 function fill ([descriptors, name], mixin) {
@@ -107,11 +131,20 @@ function frozen (instance = null, descriptors = {}) {
   return freeze(create(instance, descriptors))
 }
 
+function inherits (value) {
+  return value === this
+    || (Array.isArray(value) && value.some(inherits, this))
+}
+
 function item (model, value, key) {
   return {
     ...model,
     [key]: value
   }
+}
+
+function map (key) {
+  return [key, this[key]]
 }
 
 function merge ([name, rules]) {
@@ -149,7 +182,7 @@ function object (model) {
 
 function parse (model) {
   return extract(model, false).prototypes ||
-    [freeze(entries(getOwnPropertyDescriptors(object(model))).map(describe))]
+    freeze(entries(getOwnPropertyDescriptors(object(model))).map(describe))
 }
 
 function reduce (previous, { get, set }) {
@@ -172,7 +205,7 @@ function rule ([rules, seen = {}], [name, { get, set }]) {
   ]
 
   if (previous && !previous.set && (set || get !== previous.get)) {
-    throw new ReferenceError('Unable to redeclare an etched constant')
+    throw new ReferenceError(`Unable to redeclare an etched constant \`${name}\``)
   }
 
   return [
@@ -195,4 +228,8 @@ function rule ([rules, seen = {}], [name, { get, set }]) {
 
 function spread (current = {}, mixin = {}) {
   return assign(create(null), current, mixin)
+}
+
+function uniques (values) {
+  return [...new Set(values)]
 }
