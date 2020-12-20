@@ -126,11 +126,25 @@ const model = etched.model({
       throw new ReferenceError('Must be a number')
     }
   }
-}) // { constant: 123, dynamic: Setter }
+}) // 
+```
 
+Produces:
+```js
+console.log(model) // { constant: 123 }
+console.log(Object.getPrototypeOf(model)) // { constant: 123, dynamic: Setter }
+```
+
+```js
 const extended = etched.model(model, {
   set value (value) {}
-}) // { constant: 123, dynamic: Setter, value: Setter }
+})
+```
+
+Produces:
+```js
+console.log(model) // { constant: 123 }
+console.log(Object.getPrototypeOf(model)) // { constant: 123, dynamic: Setter, value: Setter }
 ```
 
 ### `etch.etch(instance, ...mixins)`

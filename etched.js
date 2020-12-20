@@ -10,7 +10,6 @@ const {
   assign,
   create,
   freeze,
-  fromEntries,
   getOwnPropertyDescriptors,
   getOwnPropertySymbols,
   keys
@@ -28,11 +27,10 @@ export const etched = context(null, freeze({
 export function etch (instance, ...mixins) {
   const context = extract(instance)
   const { rules } = context
-  const merged = rules
-    .map(mix, [instance, ...mixins.map(object)])
-    .map(merge)
+  const [parent, current] = distinct(rules
+    .map(mix, [instance, ...mixins.map(object)]))
 
-  return build(context, fromEntries(merged))
+  return build(context, parent, current)
 }
 
 export function etches (model, instance) {
@@ -54,7 +52,9 @@ export function model (...models) {
 
   const rules = freeze(uniques(entries(reduced).map(freeze)))
 
-  const model = build(freeze({ prototypes, rules }), fromEntries(rules.map(merge)))
+  const [parent, current] = distinct(rules)
+
+  const model = build(freeze({ prototypes, rules }), parent, current)
 
   return etch(model, ...models)
 }
@@ -67,12 +67,13 @@ function pairs (value) {
     : value.flatMap(pairs)
 }
 
-function build (value, descriptors) {
-  return frozen(context(etched, value), descriptors)
+function build (value, parent, current) {
+  return frozen(context(parent, value), current)
 }
 
-function context (prototype, value) {
-  return frozen(prototype, {
+function context (parent, value) {
+  return frozen(null, {
+    ...parent,
     [symbol]: { value }
   })
 }
@@ -85,6 +86,11 @@ function dedupe (methods, method) {
 
 function describe ([name, { set, value, get = () => value }]) {
   return freeze([name, freeze({ get, set })])
+}
+
+function distinct (descriptors) {
+  return descriptors
+    .reduce(merge, [{}, {}])
 }
 
 function entries (target) {
@@ -147,19 +153,28 @@ function map (key) {
   return [key, this[key]]
 }
 
-function merge ([name, rules]) {
+function merge ([parent, current], [name, rules]) {
   const { get, set } = rules.reduce(reduce)
+  const descriptor = {
+    enumerable: true,
+    ...set
+      ? { set }
+      : {
+        value: get()
+      }
+  }
 
   return [
-    name,
     {
-      enumerable: true,
-      ...set
-        ? { set }
-        : {
-          value: get()
-        }
-    }
+      ...parent,
+      [name]: descriptor
+    },
+    set
+      ? current
+      : {
+        ...current,
+        [name]: descriptor
+      }
   ]
 }
 
