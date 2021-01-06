@@ -29,23 +29,27 @@ const set = {
   [symbol]: value => {}
 }[symbol]
 
-const AggregateError = globalThis.AggregateError || (() => {
-  function AggregateError (errors, message) {
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, AggregateError)
+const { AggregateError } = globalThis
+
+if (!AggregateError || new AggregateError([])) {
+  (() => {
+    function AggregateError (errors, message) {
+      if (Error.captureStackTrace) {
+        Error.captureStackTrace(this, AggregateError)
+      }
+
+      return assign(this, { errors, message })
     }
 
-    return assign(this, { errors, message })
-  }
+    AggregateError.prototype = assign(new Error(), {
+      constructor: AggregateError,
+      message: '',
+      name: 'AggregateError'
+    })
 
-  AggregateError.prototype = assign(new Error(), {
-    constructor: AggregateError,
-    message: '',
-    name: 'AggregateError'
-  })
-
-  return AggregateError
-})()
+    return AggregateError
+  })()
+}
 
 export const etched = instance(init())
 
@@ -182,13 +186,15 @@ function merge (previous, current) {
     const setter = from.setters[key]
 
     if (setters[key] && getter) {
-      context.getters[key] = fill(previous, setters, key, getter)
+      try {
+        context.getters[key] = fill(previous, setters, key, getter)
+      } catch (error) {
+        errors.push([key, error])
+      }
     } else if (to.getters[key]) {
       if (to.getters[key] !== getter) {
-        errors.push([
-          key,
-          new ReferenceError(`Duplicate constant \`${key}\``)
-        ])
+        const error = new ReferenceError(`Duplicate constant \`${key}\``)
+        errors.push([key, error])
       }
     } else if (setters[key] && setter) {
       context.setters[key] = setter.reduce(push, setters[key])
@@ -219,7 +225,11 @@ function mix (previous, current) {
     const getter = from.getters[key]
 
     if (setters[key] && getter) {
-      context.getters[key] = fill(previous, setters, key, getter)
+      try {
+        context.getters[key] = fill(previous, setters, key, getter)
+      } catch (error) {
+        errors.push([key, error])
+      }
     }
   })
 
