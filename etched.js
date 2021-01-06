@@ -308,12 +308,17 @@ function validate (context, errors) {
   return instance(context)
 }
 
-function values ({ getters }) {
-  return fromEntries(keys(getters).map(key => [
-    key,
-    {
-      enumerable,
-      value: getters[key]()
-    }
-  ]))
+function values ({ getters, keys }) {
+  return fromEntries(keys.reduce((entries, key) => getters[key]
+    ? [
+      ...entries,
+      [
+        key,
+        {
+          enumerable,
+          value: getters[key]()
+        }
+      ]
+    ]
+    : entries, []))
 }
