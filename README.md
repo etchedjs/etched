@@ -166,7 +166,7 @@ const copy = etched.etch(model, instance, {
 }) // { constant: 123, dynamic: 789 }
 ```
 
-### `etched.etches(model, instance)
+### `etched.etches(model, instance, throwable = null)
 
 Provides a way to check if an instance is an extension of the provided model.
 
@@ -175,6 +175,9 @@ Provides a way to check if an instance is an extension of the provided model.
 etched.etches(etched.etched, instance) // true
 etched.etches(model, instance) // true
 etched.etches(model, model) // true
+
+etched.etches(model, {}) // false
+etched.etches(model, {}, () => new TypeError('Invalid')) // throws TypeError: 'Invalid'
 ```
 
 ## Additional notes
