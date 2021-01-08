@@ -70,7 +70,7 @@ export function etch (instance, ...mixins) {
 
     return aggregate(instance, mix, mixins)
   } catch (error) {
-    throw new (throwable(error))()
+    throw new (capture(error))()
   }
 }
 
@@ -89,20 +89,26 @@ export function fulfill (instance, ...mixins) {
   try {
     etches(instance, instance)
 
-    return aggregate(instance, required, mixins)
+    const fulfilled = aggregate(instance, required, mixins)
+
+    find(fulfilled).fulfilled = true
+
+    return fulfilled
   } catch (error) {
-    throw new (throwable(error))()
+    throw new (capture(error))()
   }
 }
 
 export function fulfills (model, value, throwable = null) {
   try {
-    fulfill(model, value)
-
-    return true
+    if (etches(model, value) && find(value).fulfilled) {
+      return true
+    }
   } catch (error) {
-    return thrower(throwable)
+    throw new (capture(error))()
   }
+
+  return thrower(throwable)
 }
 
 export function model (...models) {
@@ -351,7 +357,7 @@ function required (previous, current) {
   return validate(context, errors)
 }
 
-function throwable ({ constructor, errors, message }) {
+function capture ({ constructor, errors, message }) {
   return constructor === AggregateError
     ? constructor.bind(null, errors, message)
     : constructor.bind(null, message)
