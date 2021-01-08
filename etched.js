@@ -89,11 +89,7 @@ export function fulfill (instance, ...mixins) {
   try {
     etches(instance, instance)
 
-    const fulfilled = aggregate(instance, required, mixins)
-
-    find(fulfilled).fulfilled = true
-
-    return fulfilled
+    return aggregate(instance, required, mixins)
   } catch (error) {
     throw new (capture(error))()
   }
@@ -101,8 +97,12 @@ export function fulfill (instance, ...mixins) {
 
 export function fulfills (model, value, throwable = null) {
   try {
-    if (etches(model, value) && find(value).fulfilled) {
-      return true
+    if (etches(model, value)) {
+      const { getters } = find(value)
+
+      if (find(model).keys.every(key => getters[key])) {
+        return true
+      }
     }
   } catch (error) {
     throw new (capture(error))()
