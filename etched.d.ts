@@ -30,13 +30,18 @@ export type Instance<I extends Model<[]>, M extends object[]> = Readonly<I &
 
 export declare const etched: Model<[Etched]>
 
-export declare function model<M extends object[]>(
-    ...models: M
-): Model<M>;
-
 export declare function etch<I extends Model<[]>, M extends Partial<I>[]>(
     instance: I,
     ...mixins: M
 ): Instance<I, M>;
 
-export declare function etches(model: Model<[]>, instance: unknown): boolean;
+export declare function etches(model: Model<[]>, instance: unknown, throwable?: () => Error): boolean;
+
+export declare function fulfill<I extends Model<[]>, M extends Partial<I>[]>(
+    instance: I,
+    ...mixins: M
+): Instance<I, M>;
+
+export declare function model<M extends object[]>(
+    ...models: M
+): Model<M>;
