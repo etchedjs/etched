@@ -115,7 +115,7 @@ export function model (...models) {
   try {
     return aggregate(etched, merge, models)
   } catch (error) {
-    throw new (throwable(error))()
+    throw new (capture(error))()
   }
 }
 
