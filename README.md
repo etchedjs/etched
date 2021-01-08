@@ -179,7 +179,7 @@ const copy = etched.etch(model, instance, {
 
 Provides a way to check if an instance is an extension of the provided model.
 
-Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches. 
+Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches.
 
 #### Example
 ```js
@@ -214,6 +214,30 @@ const fullfilled = etched.fulfill(model, {
 etched.fulfill(model, {})
 // Throws AggregateError: Unsafe etching
 // with errors ['dynamic', TypeError: Must be a number]
+```
+
+### `etched.fulfills(model, value, throwable = null)
+
+Provides a way to check if an instance is a fulfilling extension of the provided model.
+
+Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches or doesn't fulfills the model.
+
+#### Example
+```js
+etched.fulfills(etched.etched, instance)
+// true
+
+etched.fulfills(model, instance)
+// true
+
+etched.fulfills(model, model)
+// true
+
+etched.fulfills(model, {})
+// false
+
+etched.fulfills(model, {}, () => new TypeError('Invalid'))
+// throws TypeError: 'Invalid'
 ```
 
 ## Additional notes

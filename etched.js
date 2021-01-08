@@ -81,15 +81,8 @@ export function etches (model, value, throwable = null) {
 
   const context = find(object(value))
 
-  if (context && (value === model || context.parents.includes(model))) {
-    return true
-  }
-
-  if (typeof throwable === 'function') {
-    throw throwable()
-  }
-
-  return false
+  return (context && (value === model || context.parents.includes(model))) ||
+    thrower(throwable)
 }
 
 export function fulfill (instance, ...mixins) {
@@ -99,6 +92,16 @@ export function fulfill (instance, ...mixins) {
     return aggregate(instance, required, mixins)
   } catch (error) {
     throw new (throwable(error))()
+  }
+}
+
+export function fulfills (model, value, throwable = null) {
+  try {
+    fulfill(model, value)
+
+    return true
+  } catch (error) {
+    return thrower(throwable)
   }
 }
 
@@ -189,8 +192,7 @@ function init (keys = [], ...parents) {
 }
 
 function instance (context) {
-  const prototype = frozen(prototype, both(context))
-  const instance = frozen(prototype, values(context))
+  const instance = frozen(frozen(prototype, both(context)), values(context))
 
   return register(instance, context)
 }
@@ -353,6 +355,14 @@ function throwable ({ constructor, errors, message }) {
   return constructor === AggregateError
     ? constructor.bind(null, errors, message)
     : constructor.bind(null, message)
+}
+
+function thrower (throwable) {
+  if (typeof throwable === 'function') {
+    throw throwable()
+  }
+
+  return false
 }
 
 function validate (context, errors) {
