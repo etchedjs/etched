@@ -61,12 +61,12 @@ const entity = model({
 const account = model({
   set name (value) {
     if (typeof value !== 'string' || !value.length) {
-      throw new ReferenceError('Must be a non-empty string')
+      throw new TypeError('Must be a non-empty string')
     }
   },
   set score (value) {
     if (!Number.isSafeInteger(value) || value < 0 || value > 10) {
-      throw new ReferenceError('Must be a valid score')
+      throw new TypeError('Must be a valid score')
     }
   }
 })
@@ -104,7 +104,8 @@ console.log(etches(accountEntity, renamed)) // true
 The default instance
 
 ```js
-etched.etched // {}
+etched.etched
+// {}
 ```
 
 ### etched.model
@@ -123,16 +124,19 @@ const model = etched.model({
   constant: 123,
   set dynamic (value) {
     if (isNaN(value)) {
-      throw new ReferenceError('Must be a number')
+      throw new TypeError('Must be a number')
     }
   }
-}) // 
+})
 ```
 
 Produces:
 ```js
-console.log(model) // { constant: 123 }
-console.log(Object.getPrototypeOf(model)) // { constant: 123, dynamic: Setter }
+console.log(model)
+// { constant: 123 }
+
+console.log(Object.getPrototypeOf(model))
+// { constant: 123, dynamic: Setter }
 ```
 
 ```js
@@ -143,8 +147,11 @@ const extended = etched.model(model, {
 
 Produces:
 ```js
-console.log(model) // { constant: 123 }
-console.log(Object.getPrototypeOf(model)) // { constant: 123, dynamic: Setter, value: Setter }
+console.log(model)
+// { constant: 123 }
+
+console.log(Object.getPrototypeOf(model))
+// { constant: 123, dynamic: Setter, value: Setter }
 ```
 
 ### `etch.etch(instance, ...mixins)`
@@ -159,25 +166,54 @@ Creates a new immutable instance, based on a previous one and the optional mixin
 ```js
 const instance = etched.etch(model, {
   dynamic: 456
-}) // { constant: 123, dynamic: 456 }
+})
+// { constant: 123, dynamic: 456 }
 
 const copy = etched.etch(model, instance, {
   dynamic: 789
-}) // { constant: 123, dynamic: 789 }
+})
+// { constant: 123, dynamic: 789 }
 ```
 
 ### `etched.etches(model, instance, throwable = null)
 
 Provides a way to check if an instance is an extension of the provided model.
 
+Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches. 
+
 #### Example
 ```js
-etched.etches(etched.etched, instance) // true
-etched.etches(model, instance) // true
-etched.etches(model, model) // true
+etched.etches(etched.etched, instance)
+// true
 
-etched.etches(model, {}) // false
-etched.etches(model, {}, () => new TypeError('Invalid')) // throws TypeError: 'Invalid'
+etched.etches(model, instance)
+// true
+
+etched.etches(model, model)
+// true
+
+etched.etches(model, {})
+// false
+
+etched.etches(model, {}, () => new TypeError('Invalid'))
+// throws TypeError: 'Invalid'
+```
+
+### `etched.fulfill(instance, ...mixins)`
+
+Acts as `etched.etch(instance, ...mixins)` but sets **all the instance properties**.
+
+#### Example
+
+```js
+const fullfilled = etched.fulfill(model, {
+  dynamic: 789
+})
+// { constant: 123, dynamic: 789 }
+
+etched.fulfill(model, {})
+// Throws AggregateError: Unsafe etching
+// with errors ['dynamic', TypeError: Must be a number]
 ```
 
 ## Additional notes
@@ -190,22 +226,27 @@ The model setters are cumulative by extension.
 const cumulative = etched.model(model, {
   set dynamic (value) {
     if (!Number.isSafeInteger(value)) {
-      throw new ReferenceError('Must be a safe integer')
+      throw new TypeError('Must be a safe integer')
     }
   }
 })
 
 etched.etch(model, {
   dynamic: NaN
-}) // ReferenceError: Must be a number
+})
+// Throws AggregateError: Unsafe etching
+// with errors ['dynamic', TypeError: Must be a number]
 
 etched.etch(cumulative, {
   dynamic: 0.1
-}) // ReferenceError: Must be a safe integer
+})
+// Throws AggregateError: Unsafe etching
+// with errors ['dynamic', TypeError: Must be a safe integer]
 
 etched.etch(cumulative, {
   dynamic: 456
-}) // { constant: 123, dynamic: 456 }
+})
+// { constant: 123, dynamic: 456 }
 ```
 
 ### Unsafe etching
@@ -215,11 +256,15 @@ A model etching can't redeclare a constant...
 ```js
 etched.model(model, {
   constant: 456
-}) // ReferenceError: 'Unable to redeclare an etched constant'
+})
+// Throws AggregateError: Unsafe etching
+// with errors ['constant', ReferenceError: 'Duplicate constant `constant`']
 
 etched.model(model, {
   set constant (value) {}
-}) // ReferenceError: 'Unable to redeclare an etched constant'
+})
+// Throws AggregateError: Unsafe etching
+// with errors ['constant', ReferenceError: 'Duplicate constant `constant`']
 ```
 
 ... but an extension can declare a model property **as a constant**
@@ -231,7 +276,8 @@ const model = etched.model({
 
 const extended = etched.model(model, {
   constant: 456
-}) // { constant: 456 }
+})
+// { constant: 456 }
 ```
 
 

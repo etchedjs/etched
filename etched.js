@@ -25,9 +25,20 @@ const symbol = Symbol('@etchedjs/etched')
 
 const registry = new WeakMap()
 
-const set = {
-  [symbol]: value => {}
-}[symbol]
+const get = () => {}
+
+const set = value => {}
+
+const prototype = frozen(null, {
+  constructor: {
+    value: {
+      [symbol]: () => {}
+    }[symbol]
+  }
+})
+
+prototype.constructor.prototype = prototype
+freeze(prototype.constructor)
 
 const { AggregateError } = globalThis
 
@@ -79,6 +90,16 @@ export function etches (model, value, throwable = null) {
   }
 
   return false
+}
+
+export function fulfill (instance, ...mixins) {
+  try {
+    etches(instance, instance)
+
+    return aggregate(instance, required, mixins)
+  } catch (error) {
+    throw new (throwable(error))()
+  }
 }
 
 export function model (...models) {
@@ -168,7 +189,7 @@ function init (keys = [], ...parents) {
 }
 
 function instance (context) {
-  const prototype = frozen(null, both(context))
+  const prototype = frozen(prototype, both(context))
   const instance = frozen(prototype, values(context))
 
   return register(instance, context)
@@ -217,7 +238,7 @@ function merge (previous, current) {
 function mix (previous, current) {
   const to = find(previous)
   const from = find(current)
-  const context = init(from.keys.reduce(push, to.keys), previous, current)
+  const context = init(to.keys, previous, current)
   const { setters } = to
   const errors = []
 
@@ -302,6 +323,30 @@ function register (instance, context) {
   registry.set(instance, context)
 
   return instance
+}
+
+function required (previous, current) {
+  const to = find(previous)
+  const from = find(current)
+  const context = init(to.keys, previous, current)
+  const { setters } = to
+  const errors = []
+
+  to.keys.forEach(key => {
+    const getter = from.getters[key] || get
+
+    if (setters[key] && getter) {
+      try {
+        context.getters[key] = fill(previous, setters, key, getter)
+      } catch (error) {
+        errors.push([key, error])
+      }
+    }
+  })
+
+  context.setters = setters
+
+  return validate(context, errors)
 }
 
 function throwable ({ constructor, errors, message }) {
