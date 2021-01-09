@@ -156,7 +156,7 @@ console.log(Object.getPrototypeOf(model))
 
 ### namespace({ url }, ...models)
 
-Acts like `model()`, but flagging the model with a `Symbol` keyed property with the url as value, useful to easily identify your objects.
+Acts like `model()`, but flagging the model with a `Symbol` keyed property with the url as value, useful to easily identify your models.
 
 Example:
 
