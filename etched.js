@@ -189,11 +189,11 @@ function init (keys = [], ...parents) {
 
   return {
     keys,
-    getters: first
-      ? { ...find(first).getters }
-      : {},
+    getters: assign(create(null), first
+      ? find(first).getters
+      : {}),
     parents: inheritance,
-    setters: {}
+    setters: create(null)
   }
 }
 
