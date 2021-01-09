@@ -16,6 +16,7 @@ const {
   freeze,
   fromEntries,
   getOwnPropertyDescriptors,
+  getOwnPropertySymbols,
   keys
 } = Object
 
@@ -149,13 +150,19 @@ function both ({ getters, keys, setters }) {
   ], []))
 }
 
+function capture ({ constructor, errors, message }) {
+  return constructor === AggregateError
+    ? constructor.bind(null, errors, message)
+    : constructor.bind(null, message)
+}
+
 function chain (parents, parent) {
   return find(parent).parents
     .reduce(push, [...parents, parent])
 }
 
 function describe (target) {
-  const names = keys(target)
+  const names = [...keys(target), ...getOwnPropertySymbols(target)]
 
   return {
     descriptors: names.map(descriptor, getOwnPropertyDescriptors(target)),
@@ -355,12 +362,6 @@ function required (previous, current) {
   context.setters = setters
 
   return validate(context, errors)
-}
-
-function capture ({ constructor, errors, message }) {
-  return constructor === AggregateError
-    ? constructor.bind(null, errors, message)
-    : constructor.bind(null, message)
 }
 
 function thrower (throwable) {
