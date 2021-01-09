@@ -120,6 +120,18 @@ export function model (...models) {
   }
 }
 
+export function namespace ({ url }, ...models) {
+  try {
+    const namespace = {
+      [Symbol('@etchedjs/etched:ns')]: url
+    }
+
+    return model(namespace, ...models)
+  } catch (error) {
+    throw new (capture(error))()
+  }
+}
+
 function aggregate (target, aggregator, [first = {}, ...rest]) {
   return [first, ...rest]
     .map(normalize)

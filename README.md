@@ -154,6 +154,25 @@ console.log(Object.getPrototypeOf(model))
 // { constant: 123, dynamic: Setter, value: Setter }
 ```
 
+### namespace({ url }, ...models)
+
+Acts like `model()`, but flagging the model with a `Symbol` keyed property with the url as value, useful to easily identify your objects.
+
+Example:
+
+```js
+const model = etched.namespace(import.meta, {
+  constant: 123
+})
+/*
+{
+  constant: 123,
+  [Symbol(@etchedjs/etched:ns)]: 'file:///DRIVE:/module/location.js'
+}
+*/
+```
+
+
 ### `etch.etch(instance, ...mixins)`
 
 
