@@ -88,9 +88,23 @@ export function etches (model, value, throwable = null) {
 
 export function fulfill (instance, ...mixins) {
   try {
-    etches(instance, instance)
+    const etched = etch(instance, ...mixins)
+    const { getters, keys, setters } = find(etched)
+    const errors = []
 
-    return aggregate(instance, required, mixins)
+    keys.forEach(key => {
+      if (!getters[key]) {
+        try {
+          fill(etched, setters, key, get)
+        } catch (error) {
+          errors.push([key, error])
+        }
+      }
+    })
+
+    validate(errors)
+
+    return etched
   } catch (error) {
     throw new (capture(error))()
   }
@@ -120,16 +134,12 @@ export function model (...models) {
   }
 }
 
-export function namespace ({ url }, ...models) {
-  try {
-    const namespace = {
-      [Symbol('@etchedjs/etched:ns')]: url
-    }
-
-    return model(namespace, ...models)
-  } catch (error) {
-    throw new (capture(error))()
+export default function namespace ({ url }, ...models) {
+  const namespace = {
+    [Symbol('@etchedjs/namespace')]: url
   }
+
+  return model(namespace, ...models)
 }
 
 function aggregate (target, aggregator, [first = {}, ...rest]) {
@@ -259,7 +269,9 @@ function merge (previous, current) {
     }
   })
 
-  return validate(context, errors)
+  validate(errors)
+
+  return instance(context)
 }
 
 function mix (previous, current) {
@@ -282,8 +294,9 @@ function mix (previous, current) {
   })
 
   context.setters = setters
+  validate(errors)
 
-  return validate(context, errors)
+  return instance(context)
 }
 
 function normalize (model) {
@@ -352,30 +365,6 @@ function register (instance, context) {
   return instance
 }
 
-function required (previous, current) {
-  const to = find(previous)
-  const from = find(current)
-  const context = init(to.keys, previous, current)
-  const { setters } = to
-  const errors = []
-
-  to.keys.forEach(key => {
-    const getter = from.getters[key] || get
-
-    if (setters[key] && getter) {
-      try {
-        context.getters[key] = fill(previous, setters, key, getter)
-      } catch (error) {
-        errors.push([key, error])
-      }
-    }
-  })
-
-  context.setters = setters
-
-  return validate(context, errors)
-}
-
 function thrower (throwable) {
   if (typeof throwable === 'function') {
     throw throwable()
@@ -384,12 +373,10 @@ function thrower (throwable) {
   return false
 }
 
-function validate (context, errors) {
+function validate (errors) {
   if (errors.length) {
     throw new AggregateError(errors, 'Unsafe etching')
   }
-
-  return instance(context)
 }
 
 function values ({ getters, keys }) {
