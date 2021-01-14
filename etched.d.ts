@@ -8,6 +8,8 @@
 declare class Empty extends null {
 }
 
+declare const symbol: unique symbol
+
 type Etched = Readonly<Empty & {}>;
 
 type IntersectAll<I extends object[]> = I extends (infer T)[]
@@ -15,6 +17,14 @@ type IntersectAll<I extends object[]> = I extends (infer T)[]
         ? U
         : never
     : never;
+
+interface Meta {
+    url: string
+}
+
+type Namespace<m extends Meta> = {
+    [symbol]: m["url"]
+}
 
 export type Model<M extends object[]> = Readonly<M extends [infer T, ...infer R]
     ? R extends object[]
@@ -47,3 +57,8 @@ export declare function fulfills(model: Model<[]>, value: unknown, throwable?: (
 export declare function model<M extends object[]>(
     ...models: M
 ): Model<M>;
+
+export declare function namespace<Meta, M extends object[]>(
+    meta: Meta,
+    ...models: M
+): Model<[{ sS}, ...M]>;

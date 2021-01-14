@@ -134,7 +134,7 @@ export function model (...models) {
   }
 }
 
-export default function namespace ({ url }, ...models) {
+export function namespace ({ url }, ...models) {
   const namespace = {
     [Symbol('@etchedjs/namespace')]: url
   }
