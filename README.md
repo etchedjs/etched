@@ -131,26 +131,29 @@ const model = etched.model({
 ```
 
 Produces:
+
 ```js
-console.log(model)
+console.log(type)
 // { constant: 123 }
 
-console.log(Object.getPrototypeOf(model))
+console.log(Object.getPrototypeOf(type))
 // { constant: 123, dynamic: Setter }
 ```
 
 ```js
-const extended = etched.model(model, {
-  set value (value) {}
+const extended = etched.model(type, {
+  set value(value) {
+  }
 })
 ```
 
 Produces:
+
 ```js
-console.log(model)
+console.log(type)
 // { constant: 123 }
 
-console.log(Object.getPrototypeOf(model))
+console.log(Object.getPrototypeOf(type))
 // { constant: 123, dynamic: Setter, value: Setter }
 ```
 
@@ -183,12 +186,12 @@ Creates a new immutable instance, based on a previous one and the optional mixin
 #### Example
 
 ```js
-const instance = etched.etch(model, {
+const instance = etched.etch(type, {
   dynamic: 456
 })
 // { constant: 123, dynamic: 456 }
 
-const copy = etched.etch(model, instance, {
+const copy = etched.etch(type, instance, {
   dynamic: 789
 })
 // { constant: 123, dynamic: 789 }
@@ -201,20 +204,21 @@ Provides a way to check if an instance is an extension of the provided model.
 Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches.
 
 #### Example
+
 ```js
 etched.etches(etched.etched, instance)
 // true
 
-etched.etches(model, instance)
+etched.etches(type, instance)
 // true
 
-etched.etches(model, model)
+etched.etches(type, type)
 // true
 
-etched.etches(model, {})
+etched.etches(type, {})
 // false
 
-etched.etches(model, {}, () => new TypeError('Invalid'))
+etched.etches(type, {}, () => new TypeError('Invalid'))
 // throws TypeError: 'Invalid'
 ```
 
@@ -225,12 +229,12 @@ Acts as `etched.etch(instance, ...mixins)` but sets **all the instance propertie
 #### Example
 
 ```js
-const fullfilled = etched.fulfill(model, {
+const fullfilled = etched.fulfill(type, {
   dynamic: 789
 })
 // { constant: 123, dynamic: 789 }
 
-etched.fulfill(model, {})
+etched.fulfill(type, {})
 // Throws AggregateError: Unsafe etching
 // with errors ['dynamic', TypeError: Must be a number]
 ```
@@ -242,20 +246,21 @@ Provides a way to check if an instance is a fulfilling extension of the provided
 Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches or doesn't fulfills the model.
 
 #### Example
+
 ```js
 etched.fulfills(etched.etched, instance)
 // true
 
-etched.fulfills(model, instance)
+etched.fulfills(type, instance)
 // true
 
-etched.fulfills(model, model)
+etched.fulfills(type, type)
 // true
 
-etched.fulfills(model, {})
+etched.fulfills(type, {})
 // false
 
-etched.fulfills(model, {}, () => new TypeError('Invalid'))
+etched.fulfills(type, {}, () => new TypeError('Invalid'))
 // throws TypeError: 'Invalid'
 ```
 
@@ -266,15 +271,15 @@ etched.fulfills(model, {}, () => new TypeError('Invalid'))
 The model setters are cumulative by extension.
 
 ```js
-const cumulative = etched.model(model, {
-  set dynamic (value) {
+const cumulative = etched.model(type, {
+  set dynamic(value) {
     if (!Number.isSafeInteger(value)) {
       throw new TypeError('Must be a safe integer')
     }
   }
 })
 
-etched.etch(model, {
+etched.etch(type, {
   dynamic: NaN
 })
 // Throws AggregateError: Unsafe etching
@@ -297,14 +302,15 @@ etched.etch(cumulative, {
 A model etching can't redeclare a constant...
 
 ```js
-etched.model(model, {
+etched.model(type, {
   constant: 456
 })
 // Throws AggregateError: Unsafe etching
 // with errors ['constant', ReferenceError: 'Duplicate constant `constant`']
 
-etched.model(model, {
-  set constant (value) {}
+etched.model(type, {
+  set constant(value) {
+  }
 })
 // Throws AggregateError: Unsafe etching
 // with errors ['constant', ReferenceError: 'Duplicate constant `constant`']

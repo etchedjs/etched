@@ -92,7 +92,7 @@ export function fulfill (instance, ...mixins) {
     const { getters, keys, setters } = find(etched)
     const errors = []
 
-    keys.forEach(key => {
+    forEach(keys, key => {
       if (!getters[key]) {
         try {
           fill(etched, setters, key, get)
@@ -143,13 +143,11 @@ export function namespace ({ url }, ...models) {
 }
 
 function aggregate (target, aggregator, [first = {}, ...rest]) {
-  return [first, ...rest]
-    .map(normalize)
-    .reduce(aggregator, target)
+  return reduce(map([first, ...rest], normalize), aggregator, target)
 }
 
 function both ({ getters, keys, setters }) {
-  return fromEntries(keys.reduce((entries, key) => [
+  return fromEntries(reduce(keys, (entries, key) => [
     ...entries,
     ...setters[key]
       ? [
@@ -179,15 +177,14 @@ function capture ({ constructor, errors, message }) {
 }
 
 function chain (parents, parent) {
-  return find(parent).parents
-    .reduce(push, [...parents, parent])
+  return reduce(find(parent).parents, push, [...parents, parent])
 }
 
 function describe (target) {
   const names = [...keys(target), ...getOwnPropertySymbols(target)]
 
   return {
-    descriptors: names.map(descriptor, getOwnPropertyDescriptors(target)),
+    descriptors: map(names, descriptor, getOwnPropertyDescriptors(target)),
     keys: names
   }
 }
@@ -199,7 +196,7 @@ function descriptor (key) {
 function fill (previous, setters, key, getter) {
   const value = getter()
 
-  setters[key].forEach(setter => setter.call(previous, value))
+  forEach(setters[key], setter => setter.call(previous, value))
 
   return getter
 }
@@ -208,12 +205,20 @@ function find (instance) {
   return registry.get(instance)
 }
 
+function forEach (entries, fn) {
+  const { length } = entries
+
+  for (let key = 0; key < length; key += 1) {
+    fn(entries[key])
+  }
+}
+
 function frozen (prototype, descriptors = {}) {
   return freeze(create(prototype, descriptors))
 }
 
 function init (keys = [], ...parents) {
-  const inheritance = parents.reduce(chain, [])
+  const inheritance = reduce(parents, chain, [])
   const [first] = inheritance
 
   return {
@@ -232,14 +237,25 @@ function instance (context) {
   return register(instance, context)
 }
 
+function map (entries, fn, context) {
+  const { length } = entries
+  const results = []
+
+  for (let key = 0; key < length; key += 1) {
+    results.push(fn.call(context, entries[key]))
+  }
+
+  return results
+}
+
 function merge (previous, current) {
   const to = find(previous)
   const from = find(current)
-  const context = init(from.keys.reduce(push, to.keys), previous, current)
+  const context = init(reduce(from.keys, push, to.keys), previous, current)
   const { setters } = to
   const errors = []
 
-  from.keys.forEach(key => {
+  forEach(from.keys, key => {
     const getter = from.getters[key]
     const setter = from.setters[key]
 
@@ -255,7 +271,7 @@ function merge (previous, current) {
         errors.push([key, error])
       }
     } else if (setters[key] && setter) {
-      context.setters[key] = setter.reduce(push, setters[key])
+      context.setters[key] = reduce(setter, push, setters[key])
     } else if (getter) {
       context.getters[key] = getter
     } else {
@@ -263,7 +279,7 @@ function merge (previous, current) {
     }
   })
 
-  keys(setters).forEach(key => {
+  forEach(keys(setters), key => {
     if (!context.getters[key] && !context.setters[key]) {
       context.setters[key] = setters[key]
     }
@@ -281,7 +297,7 @@ function mix (previous, current) {
   const { setters } = to
   const errors = []
 
-  from.keys.forEach(key => {
+  forEach(from.keys, key => {
     const getter = from.getters[key]
 
     if (setters[key] && getter) {
@@ -323,8 +339,7 @@ function parse (target) {
   const { descriptors, keys } = describe(target)
   const context = init(keys, etched)
 
-  return descriptors
-    .reduce(parser, [context, target])
+  return reduce(descriptors, parser, [context, target])
     .shift()
 }
 
@@ -359,6 +374,17 @@ function push (values, value) {
     : [...values, value]
 }
 
+function reduce (entries, fn, value) {
+  const { length } = entries
+  let previous = value
+
+  for (let key = 0; key < length; key += 1) {
+    previous = fn(previous, entries[key], key)
+  }
+
+  return previous
+}
+
 function register (instance, context) {
   registry.set(instance, context)
 
@@ -380,7 +406,7 @@ function validate (errors) {
 }
 
 function values ({ getters, keys }) {
-  return fromEntries(keys.reduce((entries, key) => getters[key]
+  return fromEntries(reduce(keys, (entries, key) => getters[key]
     ? [
       ...entries,
       [
