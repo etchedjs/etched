@@ -88,23 +88,9 @@ export function etches (model, value, throwable = null) {
 
 export function fulfill (instance, ...mixins) {
   try {
-    const etched = etch(instance, ...mixins)
-    const { getters, keys, setters } = find(etched)
-    const errors = []
+    etches(instance, instance)
 
-    forEach(keys, key => {
-      if (!getters[key]) {
-        try {
-          fill(etched, setters, key, get)
-        } catch (error) {
-          errors.push([key, error])
-        }
-      }
-    })
-
-    validate(errors)
-
-    return etched
+    return aggregate(instance, all, mixins)
   } catch (error) {
     throw new (capture(error))()
   }
@@ -114,8 +100,9 @@ export function fulfills (model, value, throwable = null) {
   try {
     if (etches(model, value)) {
       const { getters } = find(value)
+      const { keys } = find(model)
 
-      if (find(model).keys.every(key => getters[key])) {
+      if (keys.every(key => getters[key])) {
         return true
       }
     }
@@ -129,7 +116,7 @@ export function fulfills (model, value, throwable = null) {
 export function model (...models) {
   try {
     return aggregate(etched, merge, models)
-  } catch (error) {
+  } catch (error) {console.log(error)
     throw new (capture(error))()
   }
 }
@@ -144,6 +131,31 @@ export function namespace ({ url }, ...models) {
 
 function aggregate (target, aggregator, [first = {}, ...rest]) {
   return reduce(map([first, ...rest], normalize), aggregator, target)
+}
+
+function all (previous, current) {
+  const to = find(previous)
+  const from = find(current)
+  const context = init(to.keys, previous, current)
+  const { setters } = to
+  const errors = []
+
+  forEach(to.keys, key => {
+    const getter = from.getters[key]
+
+    if (setters[key]) {
+      try {
+        context.getters[key] = fill(previous, setters, key, getter || get)
+      } catch (error) {
+        errors.push([key, error])
+      }
+    }
+  })
+
+  context.setters = setters
+  validate(errors)
+
+  return instance(context)
 }
 
 function both ({ getters, keys, setters }) {
@@ -267,7 +279,8 @@ function merge (previous, current) {
       }
     } else if (to.getters[key]) {
       if (getter && to.getters[key] !== getter) {
-        const error = new ReferenceError(`Duplicate constant \`${key}\``)
+        const name = typeof key === 'symbol' ? `Symbol(${key.description})` : key
+        const error = new ReferenceError(`Duplicate constant \`${name}\``)
 
         errors.push([key, error])
       }
