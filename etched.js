@@ -266,8 +266,9 @@ function merge (previous, current) {
         errors.push([key, error])
       }
     } else if (to.getters[key]) {
-      if (to.getters[key] !== getter) {
+      if (getter && to.getters[key] !== getter) {
         const error = new ReferenceError(`Duplicate constant \`${key}\``)
+
         errors.push([key, error])
       }
     } else if (setters[key] && setter) {
