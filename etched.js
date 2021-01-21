@@ -116,7 +116,7 @@ export function fulfills (model, value, throwable = null) {
 export function model (...models) {
   try {
     return aggregate(etched, merge, models)
-  } catch (error) {console.log(error)
+  } catch (error) {
     throw new (capture(error))()
   }
 }
