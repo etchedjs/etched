@@ -99,10 +99,10 @@ export function fulfill (instance, ...mixins) {
 export function fulfills (model, value, throwable = null) {
   try {
     if (etches(model, value)) {
-      const { getters } = find(value)
+      const { fulfilled } = find(value)
       const { keys } = find(model)
 
-      if (keys.every(key => getters[key])) {
+      if (keys.every(key => fulfilled.includes(key))) {
         return true
       }
     }
@@ -136,8 +136,8 @@ function aggregate (target, aggregator, [first = {}, ...rest]) {
 function all (previous, current) {
   const to = find(previous)
   const from = find(current)
-  const context = init(to.keys, previous, current)
-  const { setters } = to
+  const { fulfilled, setters } = to
+  const context = init(to.keys, fulfilled, previous, current)
   const errors = []
 
   forEach(to.keys, key => {
@@ -145,7 +145,13 @@ function all (previous, current) {
 
     if (setters[key]) {
       try {
-        context.getters[key] = fill(previous, setters, key, getter || get)
+        const value = fill(previous, setters, key, getter || get)
+
+        if (getter) {
+          context.getters[key] = value
+        }
+
+        context.fulfilled.push(key)
       } catch (error) {
         errors.push([key, error])
       }
@@ -229,12 +235,13 @@ function frozen (prototype, descriptors = {}) {
   return freeze(create(prototype, descriptors))
 }
 
-function init (keys = [], ...parents) {
+function init (keys = [], [...fulfilled] = [], ...parents) {
   const inheritance = reduce(parents, chain, [])
   const [first] = inheritance
 
   return {
     keys,
+    fulfilled,
     getters: assign(create(null), first
       ? find(first).getters
       : {}),
@@ -263,8 +270,9 @@ function map (entries, fn, context) {
 function merge (previous, current) {
   const to = find(previous)
   const from = find(current)
-  const context = init(reduce(from.keys, push, to.keys), previous, current)
-  const { setters } = to
+  const names = reduce(from.keys, push, to.keys)
+  const { fulfilled, setters } = to
+  const context = init(names, fulfilled, previous, current)
   const errors = []
 
   forEach(from.keys, key => {
@@ -274,12 +282,13 @@ function merge (previous, current) {
     if (setters[key] && getter) {
       try {
         context.getters[key] = fill(previous, setters, key, getter)
+        context.fulfilled.push(key)
       } catch (error) {
         errors.push([key, error])
       }
     } else if (to.getters[key]) {
       if (getter && to.getters[key] !== getter) {
-        const name = typeof key === 'symbol' ? `Symbol(${key.description})` : key
+        const name = typeof key === 'symbol' ? `symbol` : key
         const error = new ReferenceError(`Duplicate constant \`${name}\``)
 
         errors.push([key, error])
@@ -288,6 +297,7 @@ function merge (previous, current) {
       context.setters[key] = reduce(setter, push, setters[key])
     } else if (getter) {
       context.getters[key] = getter
+      context.fulfilled.push(key)
     } else {
       context.setters[key] = setter
     }
@@ -307,8 +317,8 @@ function merge (previous, current) {
 function mix (previous, current) {
   const to = find(previous)
   const from = find(current)
-  const context = init(to.keys, previous, current)
-  const { setters } = to
+  const { fulfilled, setters } = to
+  const context = init(to.keys, fulfilled, previous, current)
   const errors = []
 
   forEach(from.keys, key => {
@@ -317,6 +327,7 @@ function mix (previous, current) {
     if (setters[key] && getter) {
       try {
         context.getters[key] = fill(previous, setters, key, getter)
+        context.fulfilled.push(key)
       } catch (error) {
         errors.push([key, error])
       }
@@ -351,7 +362,7 @@ function object (target, throwing = false) {
 
 function parse (target) {
   const { descriptors, keys } = describe(target)
-  const context = init(keys, etched)
+  const context = init(keys, [], etched)
 
   return reduce(descriptors, parser, [context, target])
     .shift()
