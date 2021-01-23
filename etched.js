@@ -141,7 +141,7 @@ function all (previous, current) {
   const errors = []
 
   forEach(to.keys, key => {
-    const getter = from.getters[key]
+    const getter = from.getters[key] || to.getters[key]
 
     if (setters[key]) {
       try {
@@ -151,7 +151,7 @@ function all (previous, current) {
           context.getters[key] = value
         }
 
-        context.fulfilled.push(key)
+        context.fulfilled = push(context.fulfilled, key)
       } catch (error) {
         errors.push([key, error])
       }
@@ -282,7 +282,7 @@ function merge (previous, current) {
     if (setters[key] && getter) {
       try {
         context.getters[key] = fill(previous, setters, key, getter)
-        context.fulfilled.push(key)
+        context.fulfilled = push(context.fulfilled, key)
       } catch (error) {
         errors.push([key, error])
       }
@@ -297,7 +297,7 @@ function merge (previous, current) {
       context.setters[key] = reduce(setter, push, setters[key])
     } else if (getter) {
       context.getters[key] = getter
-      context.fulfilled.push(key)
+      context.fulfilled = push(context.fulfilled, key)
     } else {
       context.setters[key] = setter
     }
@@ -327,7 +327,7 @@ function mix (previous, current) {
     if (setters[key] && getter) {
       try {
         context.getters[key] = fill(previous, setters, key, getter)
-        context.fulfilled.push(key)
+        context.fulfilled = push(context.fulfilled, key)
       } catch (error) {
         errors.push([key, error])
       }
