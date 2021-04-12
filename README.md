@@ -264,6 +264,20 @@ etched.fulfills(type, {}, () => new TypeError('Invalid'))
 // throws TypeError: 'Invalid'
 ```
 
+### etched.iterable
+A model to extend to make your etched instances iterables 
+
+```js
+import { etch, iterable, model } from './etched.js'
+
+const picker = model(iterable, {
+  set 1 (value) {},
+  set 3 (value) {}
+})
+
+console.log([...etch(picker, [0, 1, 2, 3, 4])]) // [['1', 1], ['3', 3]]
+```
+
 ## Additional notes
 
 ### Cumulative setters

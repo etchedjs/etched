@@ -129,6 +129,14 @@ export function namespace ({ url }, ...models) {
   return model(namespace, ...models)
 }
 
+export const iterable = model({
+  *[Symbol.iterator] () {
+    for (const pair of Object.entries(this)) {
+      yield pair
+    }
+  }
+})
+
 function aggregate (target, aggregator, [first = {}, ...rest]) {
   return reduce(map([first, ...rest], normalize), aggregator, target)
 }
