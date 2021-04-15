@@ -62,3 +62,5 @@ export declare function namespace<Meta, M extends object[]>(
     meta: Meta,
     ...models: M
 ): Model<[{ sS}, ...M]>;
+
+export declare const iterable : Iterable<Model<[Etched]>>
