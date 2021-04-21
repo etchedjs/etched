@@ -1,6 +1,6 @@
 {
   "name": "@etchedjs/etched",
-  "version": "8.4.2",
+  "version": "8.4.3",
   "description": "A utility to easily create some immutable objects, based on multiple etched inheritance.",
   "main": "etched.js",
   "type": "module",

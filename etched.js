@@ -41,10 +41,8 @@ const prototype = frozen(null, {
 prototype.constructor.prototype = prototype
 freeze(prototype.constructor)
 
-const { AggregateError } = globalThis
-
-if (!AggregateError || new AggregateError([])) {
-  (() => {
+const {
+  AggregateError = (() => {
     function AggregateError (errors, message) {
       if (Error.captureStackTrace) {
         Error.captureStackTrace(this, AggregateError)
@@ -61,7 +59,7 @@ if (!AggregateError || new AggregateError([])) {
 
     return AggregateError
   })()
-}
+} = globalThis
 
 export const etched = instance(init())
 

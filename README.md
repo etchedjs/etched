@@ -268,7 +268,7 @@ etched.fulfills(type, {}, () => new TypeError('Invalid'))
 A model to extend to make your etched instances iterables 
 
 ```js
-import { etch, iterable, model } from './etched.js'
+import { etch, iterable, model } from '@etchedjs/etched'
 
 const picker = model(iterable, {
   set 1 (value) {},
