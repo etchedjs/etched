@@ -45,14 +45,14 @@ export declare function etch<I extends Model<[]>, M extends Partial<I>[]>(
     ...mixins: M
 ): Instance<I, M>;
 
-export declare function etches(model: Model<[]>, value: unknown, throwable?: () => Error): boolean;
+export declare function etches(model: Model<[]>, value: unknown): boolean;
 
 export declare function fulfill<I extends Model<[]>, M extends Partial<I>[]>(
     instance: I,
     ...mixins: M
 ): Instance<I, M>;
 
-export declare function fulfills(model: Model<[]>, value: unknown, throwable?: () => Error): boolean;
+export declare function fulfills(model: Model<[]>, value: unknown): boolean;
 
 export declare function model<M extends object[]>(
     ...models: M
