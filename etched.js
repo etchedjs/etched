@@ -44,10 +44,6 @@ freeze(prototype.constructor)
 const {
   AggregateError = (() => {
     function AggregateError (errors, message) {
-      if (Error.captureStackTrace) {
-        Error.captureStackTrace(this, AggregateError)
-      }
-
       return assign(this, { errors, message })
     }
 
@@ -64,59 +60,40 @@ const {
 export const etched = instance(init())
 
 export function etch (instance, ...mixins) {
-  try {
-    etches(instance, instance)
+  etches(instance, instance)
 
-    return aggregate(instance, mix, mixins)
-  } catch (error) {
-    throw new (capture(error))()
-  }
+  return aggregate(instance, mix, mixins)
 }
 
-export function etches (model, value, throwable = null) {
+export function etches (model, value) {
   if (!find(object(model))) {
     throw new TypeError('Must be etched `model`')
   }
 
   const context = find(object(value))
 
-  return (context && (value === model || context.parents.includes(model))) ||
-    thrower(throwable)
+  return (context && (value === model || context.parents.includes(model)))
 }
 
 export function fulfill (instance, ...mixins) {
-  try {
-    etches(instance, instance)
+  etches(instance, instance)
 
-    return aggregate(instance, all, mixins)
-  } catch (error) {
-    throw new (capture(error))()
-  }
+  return aggregate(instance, all, mixins)
 }
 
-export function fulfills (model, value, throwable = null) {
-  try {
-    if (etches(model, value)) {
-      const { fulfilled } = find(value)
-      const { keys } = find(model)
+export function fulfills (model, value) {
+  if (etches(model, value)) {
+    const { fulfilled } = find(value)
+    const { keys } = find(model)
 
-      if (keys.every(key => fulfilled.includes(key))) {
-        return true
-      }
+    if (keys.every(key => fulfilled.includes(key))) {
+      return true
     }
-  } catch (error) {
-    throw new (capture(error))()
   }
-
-  return thrower(throwable)
 }
 
 export function model (...models) {
-  try {
-    return aggregate(etched, merge, models)
-  } catch (error) {
-    throw new (capture(error))()
-  }
+  return aggregate(etched, merge, models)
 }
 
 export function namespace ({ url }, ...models) {
@@ -192,12 +169,6 @@ function both ({ getters, keys, setters }) {
         ]
         : []
   ], []))
-}
-
-function capture ({ constructor, errors, message }) {
-  return constructor === AggregateError
-    ? constructor.bind(null, errors, message)
-    : constructor.bind(null, message)
 }
 
 function chain (parents, parent) {
@@ -420,14 +391,6 @@ function register (instance, context) {
   registry.set(instance, context)
 
   return instance
-}
-
-function thrower (throwable) {
-  if (typeof throwable === 'function') {
-    throw throwable()
-  }
-
-  return false
 }
 
 function validate (errors) {

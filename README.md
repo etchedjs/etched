@@ -197,11 +197,9 @@ const copy = etched.etch(type, instance, {
 // { constant: 123, dynamic: 789 }
 ```
 
-### `etched.etches(model, instance, throwable = null)
+### `etched.etches(model, instance)
 
 Provides a way to check if an instance is an extension of the provided model.
-
-Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches.
 
 #### Example
 
@@ -217,9 +215,6 @@ etched.etches(type, type)
 
 etched.etches(type, {})
 // false
-
-etched.etches(type, {}, () => new TypeError('Invalid'))
-// throws TypeError: 'Invalid'
 ```
 
 ### `etched.fulfill(instance, ...mixins)`
@@ -239,11 +234,10 @@ etched.fulfill(type, {})
 // with errors ['dynamic', TypeError: Must be a number]
 ```
 
-### `etched.fulfills(model, value, throwable = null)
+### `etched.fulfills(model, value)
 
 Provides a way to check if an instance is a fulfilling extension of the provided model.
 
-Note: a `throwable` function returning an error can be provided to be called if the `instance` doesn't etches or doesn't fulfills the model.
 
 #### Example
 
@@ -259,9 +253,6 @@ etched.fulfills(type, type)
 
 etched.fulfills(type, {})
 // false
-
-etched.fulfills(type, {}, () => new TypeError('Invalid'))
-// throws TypeError: 'Invalid'
 ```
 
 ### etched.iterable
