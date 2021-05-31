@@ -78,7 +78,7 @@ export function etches (model, value) {
 export function fulfill (instance, ...mixins) {
   etches(instance, instance)
 
-  return aggregate(instance, all, mixins)
+  return aggregate(instance, all, [etch(instance, ...mixins)])
 }
 
 export function fulfills (model, value) {
